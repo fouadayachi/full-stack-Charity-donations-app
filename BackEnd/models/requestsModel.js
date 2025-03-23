@@ -58,6 +58,12 @@ const RequestHelpSchema = new mongoose.Schema({
     default: false,
   },
 
+  status : {
+    type: String,
+    enum: ['pending', 'refused', 'accepted'],
+    default: 'pending'
+  }
+
 
 },{timestamps : true});
 

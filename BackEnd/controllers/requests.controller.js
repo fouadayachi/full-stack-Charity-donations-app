@@ -79,3 +79,57 @@ export const addRequest = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+export const getAllRequests = async (req, res) => {
+  try {
+    const requests = await RequestHelp.find({}).sort({ createdAt: -1 }); // Fetch all requests, sorted by creation date (newest first)
+    res.status(200).json({ success: true, requests });
+  } catch (error) {
+    console.error("Error fetching requests:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+
+export const acceptRequest = async (req, res) => {
+  const  requestId  = req.params.id; 
+
+  try {
+    const updatedRequest = await RequestHelp.findByIdAndUpdate(
+      requestId,
+      { status: "accepted" }, 
+      { new: true } 
+    );
+
+    if (!updatedRequest) {
+      return res.status(404).json({ success: false, message: "Request not found" });
+    }
+
+    res.status(200).json({ success: true, message: "Request accepted", request: updatedRequest });
+  } catch (error) {
+    console.error("Error accepting request:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const refuseRequest = async (req, res) => {
+  const  requestId  = req.params.id; 
+  console.log(requestId);
+
+  try {
+    const updatedRequest = await RequestHelp.findByIdAndUpdate(
+      requestId,
+      { status: "refused" }, 
+      { new: true } 
+    );
+
+    if (!updatedRequest) {
+      return res.status(404).json({ success: false, message: "Request not found" });
+    }
+
+    res.status(200).json({ success: true, message: "Request refused", request: updatedRequest });
+  } catch (error) {
+    console.error("Error refusing request:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};

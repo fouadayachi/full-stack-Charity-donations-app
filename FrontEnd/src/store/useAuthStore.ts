@@ -1,6 +1,7 @@
 import { toast } from "react-toastify";
 import { create } from "zustand";
 import axiosInstance from "../config/axios";
+import { User } from "@/components/Admin/Users/UsersPage";
 
 interface AuthStore {
   authenticated: boolean;
@@ -9,11 +10,13 @@ interface AuthStore {
   isSigningUp: boolean;
   isCheckingAuth: boolean;
   contributions: Array<any>;
+  users: Array<User>;
   signup: (data: any) => Promise<void>;
   login: (data: any) => Promise<void>;
   logout: () => Promise<void>;
   getContributions: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  getAllUsers: () => Promise<void>; 
 }
 
 const useAuthStore = create<AuthStore>((set) => ({
@@ -23,6 +26,7 @@ const useAuthStore = create<AuthStore>((set) => ({
   isSigningUp: false,
   isCheckingAuth: false,
   contributions: [],
+  users : [],
 
   signup: async (data) => {
     set({ isSigningUp: true });
@@ -100,6 +104,20 @@ const useAuthStore = create<AuthStore>((set) => ({
         ],
       });
     } catch (error : any) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    }
+  },
+  getAllUsers: async () => {
+    try {
+      const res = await axiosInstance.get("/auth/getAllUsers");
+
+      if (res.data.success) {
+
+
+        set({ users: res.data.users }); 
+      }
+    } catch (error: any) {
       console.log(error);
       toast.error(error.response.data.message);
     }

@@ -176,4 +176,37 @@ export const siteConfig = {
       componentType: "input",
     },
   ],
+  eventsControl : {
+    basic : [
+      {
+        label : "Title",
+        icon : true,
+        name : "title",
+        placeholder : "Event title",
+        type : "text",
+      },
+      {
+        label : "Short Description",
+        icon : false,
+        name : "shortDescription",
+        placeholder : "Brief summary of the event (1-2 sentences)",
+        type : "text",
+      },
+      {
+        label : "Long Description",
+        icon : false,
+        name : "longDescription",
+        placeholder : "Detailed description of the event",
+        type : "textarea",
+        rows : 4
+      },
+      {
+        label : "Location",
+        icon : true,
+        name : "location",
+        placeholder : "Event location",
+        type : "text",
+      }
+    ]
+  }
 };

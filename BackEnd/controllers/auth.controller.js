@@ -94,3 +94,18 @@ export const checkAuth = async (req, res) => {
       .json({ success: false, message: "Internal Server Error" });
   }
 };
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, { password: 0 }); // Exclude password field
+    return res.status(200).json({
+      success: true,
+      users,
+      message: "Users retrieved successfully",
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};

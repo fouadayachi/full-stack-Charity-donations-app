@@ -11,6 +11,8 @@ import itemDonationRouter from './routes/itemDonation.route.js';
 import requestsRouter from './routes/requests.route.js';
 import showCaseRouter from './routes/showCase.route.js';
 import volunteerRouter from './routes/volunteer.route.js';
+import dashRouter from './routes/dashboard.route.js';
+import contributionsRouter from './routes/contributions.route.js';
 dotenv.config();
 
 const __dirname = path.resolve();
@@ -29,6 +31,8 @@ app.use("/api/requests",requestsRouter);
 app.use("/api/donations",donationRouter);
 app.use("/api/volunteers",volunteerRouter);
 app.use("/api/itemDonations",itemDonationRouter);
+app.use("/api/dashboard",dashRouter);
+app.use("/api/contributions",contributionsRouter);
 connectDB();
 
 if(process.env.NODE_ENV === 'production'){

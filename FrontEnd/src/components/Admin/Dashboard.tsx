@@ -73,26 +73,7 @@ export const Dashboard = () => {
     },
   ];
 
-  const requestsData = [
-    {
-      id: 1,
-      requester: "Maria Gonzalez",
-      type: "Shelter",
-      urgency: "high",
-    },
-    {
-      id: 2,
-      requester: "John Smith",
-      type: "Food",
-      urgency: "high",
-    },
-    {
-      id: 3,
-      requester: "Alex Chen",
-      type: "Financial",
-      urgency: "medium",
-    },
-  ];
+  
 
   useEffect(() => {
     getStats();

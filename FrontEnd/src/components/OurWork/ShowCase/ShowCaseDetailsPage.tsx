@@ -4,19 +4,24 @@ import {
   NavbarBrand,
   NavbarContent,
 } from "@heroui/navbar";
-import  EventHeader  from "./EventHeader"
-import  ResultsOverview  from "./ResultsOverview";
-import  EventGallery  from "./EventGallery";
+import EventHeader from "./EventHeader";
+import ResultsOverview from "./ResultsOverview";
+import EventGallery from "./EventGallery";
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 import useShowCases from "@/store/useShowCaseStore";
 function ShowCaseDetailsPage() {
-  const {id} = useParams();
-  const {getEvent,event} = useShowCases();
+  const { id } = useParams();
+  const { getEvent, event } = useShowCases();
 
   useEffect(() => {
     getEvent(id);
   }, [id]);
+
+  useEffect(() => {
+    // Scroll to the top of the page when the location changes
+    window.scrollTo(0, 0);
+  }, [location]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -30,12 +35,12 @@ function ShowCaseDetailsPage() {
         </NavbarContent>
       </HeroUINavbar>
       <main>
-        <EventHeader event={event}/>
+        <EventHeader event={event} />
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-6xl mx-auto">
             <div>
-              <ResultsOverview event={event}/>
-              <EventGallery event={event}/>
+              <ResultsOverview event={event} />
+              <EventGallery event={event} />
             </div>
           </div>
         </div>

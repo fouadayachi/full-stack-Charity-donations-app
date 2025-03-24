@@ -9,6 +9,7 @@ import {
   ImageIcon,
   InboxIcon,
   MenuIcon,
+  MessageCircle,
   UsersIcon,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -51,6 +52,12 @@ export const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
       label: "Users",
       icon: <UsersIcon size={20} />,
       path: "/admin/users", // Path for the Users item
+    },
+    {
+      key: "messages",
+      label: "Messages",
+      icon: <MessageCircle size={20} />,
+      path: "/admin/messages", // Path for the Users item
     },
   ];
 

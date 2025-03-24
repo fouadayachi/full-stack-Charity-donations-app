@@ -43,8 +43,17 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     items?: { name: string; donated: number; needed: number }[];
   } | null = null;
   const navigate = useNavigate();
-  const handleEventDetails = (id : any) => {
+  const handleEventDetails = (id: any) => {
     navigate(`/event/${id}`);
+  };
+
+  const handleShare = (event: Event) => {
+
+    const eventUrl = `${window.location.origin}/event/${event._id}`;
+    
+    navigator.clipboard.writeText(eventUrl).then(() => {
+      console.log("Link copied to clipboard!");
+    });
   };
 
   // Calculate progress for donation posts
@@ -131,18 +140,33 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
         <div className="px-6 py-3 flex-1">
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="text-xl font-semibold mb-2 hover:underline cursor-pointer" onClick={() =>  handleEventDetails(event._id)}>
+              <h3
+                className="text-xl font-semibold mb-2 hover:underline cursor-pointer"
+                onClick={() => handleEventDetails(event._id)}
+              >
                 {event.title}
               </h3>
               <p className="text-gray-600 mb-4">{event.shortDescription}</p>
             </div>
             <div className="  z-20 absolute right-3 top-3 md:flex md:static gap-2">
-              <Button
-                isIconOnly
-                className="p-2  bg-transparent hover:bg-gray-100  rounded-full"
-              >
-                <Share2 className="text-primary-500" size={20} />
-              </Button>
+              <Popover placement="bottom">
+                <PopoverTrigger>
+                  <Button
+                    isIconOnly
+                    className="p-2 bg-transparent hover:bg-gray-100 rounded-full"
+                    onPress={() => handleShare(event)}
+                  >
+                    <Share2 className="text-primary-500" size={20} />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent>
+                  <div className="px-1 py-2 text-center">
+                    <p className="text-sm text-gray-700">
+                      Link copied to clipboard!
+                    </p>
+                  </div>
+                </PopoverContent>
+              </Popover>
               {user ? (
                 <Button
                   isIconOnly
@@ -206,17 +230,20 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
                 {event.location}
               </span>
               <div className="flex gap-4 items-center justify-between">
-              <span className="flex items-center gap-1">
-                <Calendar size={16} />
-                Started on {event.startDate.split("T")[0]}
-              </span>
-              <span className="flex items-center gap-1">
-                <Calendar size={16} />
-                Ends on {event.endDate.split("T")[0]}
-              </span>
+                <span className="flex items-center gap-1">
+                  <Calendar size={16} />
+                  Started on {event.startDate.split("T")[0]}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Calendar size={16} />
+                  Ends on {event.endDate.split("T")[0]}
+                </span>
               </div>
             </div>
-            <button className="w-full md:w-auto px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors" onClick={() =>  handleEventDetails(event._id)}>
+            <button
+              className="w-full md:w-auto px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              onClick={() => handleEventDetails(event._id)}
+            >
               {event.type === "donation" && "Donate Now"}
               {event.type === "volunteer" && "Volunteer Now"}
               {event.type === "items" && "Donate Items"}

@@ -17,6 +17,7 @@ import { ShowcasePage } from "@/components/Admin/ShowCase/ShowcasePage";
 import { Dashboard } from "./components/Admin/Dashboard";
 import { AddEventPage } from "./components/Admin/Events/AddEventPage";
 import { AddShowcasePage } from "./components/Admin/ShowCase/AddShowcasePage";
+import { MessagesPage } from "./components/Admin/Messages/MessagesPage";
 
 function App() {
   const { checkAuth, isCheckingAuth, authenticated } = useAuthStore();
@@ -50,6 +51,7 @@ function App() {
         <Route element={<Admin />} path="/admin">
           <Route index element={<Dashboard />} />
           <Route element={<ShowcasePage />} path="showcases" />
+          <Route element={<MessagesPage />} path="messages" />
           <Route element={<AddShowcasePage />} path="showcases/addShowcase" />
           <Route element={<EventsPage />} path="events" />
           <Route element={<AddEventPage />} path="events/addEvent" />

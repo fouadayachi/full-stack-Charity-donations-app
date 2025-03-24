@@ -1,9 +1,12 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { toast } from 'react-toastify';
 
 const NewsletterForm = () => {
+  const [email,setEmail] = useState("")
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Handle newsletter signup
+        setEmail("");
+        toast.success("You have successfully subscribed to the newsletter!");
       };
       
       return (
@@ -18,6 +21,8 @@ const NewsletterForm = () => {
               id="email"
               placeholder="Enter your email"
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
             <button
               className="px-4 py-2 bg-yellow-400 text-[#003366] font-semibold rounded-lg hover:bg-yellow-500 transition-colors duration-200"

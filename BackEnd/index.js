@@ -13,6 +13,7 @@ import showCaseRouter from './routes/showCase.route.js';
 import volunteerRouter from './routes/volunteer.route.js';
 import dashRouter from './routes/dashboard.route.js';
 import contributionsRouter from './routes/contributions.route.js';
+import messagesRouter from './routes/messages.route.js';
 dotenv.config();
 
 const __dirname = path.resolve();
@@ -33,6 +34,7 @@ app.use("/api/volunteers",volunteerRouter);
 app.use("/api/itemDonations",itemDonationRouter);
 app.use("/api/dashboard",dashRouter);
 app.use("/api/contributions",contributionsRouter);
+app.use("/api/messages",messagesRouter)
 connectDB();
 
 if(process.env.NODE_ENV === 'production'){

@@ -1,13 +1,30 @@
+import useMessagesStore from "@/store/useMessagesStore";
 import { Mail, MapPin, Phone, Send } from "lucide-react";
 import { useState } from "react";
-
+import { Button } from "@heroui/button";
+import useAuthStore from "@/store/useAuthStore";
 
 const ContactUs = () => {
-    const [contactForm,setContactForm] = useState({
-        name: "",
-        email: "",
-        message: ""
+  const {user} = useAuthStore();
+  const [contactForm, setContactForm] = useState({
+    name: (user ? `${user.lastName} ${user.firstName}` : ""),
+    email: (user ? user.email : ""),
+    message: "",
+  });
+  const { sendMessage, isSending } = useMessagesStore();
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    sendMessage({
+      fullName: contactForm.name,
+      email: contactForm.email,
+      message: contactForm.message,
     });
+    setContactForm({
+      name: (user ? `${user.lastName} ${user.firstName}` : ""),
+      email: (user ? user.email : ""),
+      message: "",
+    });
+  };
 
   return (
     <main className="min-h-screen w-full bg-white" id="contactUs">
@@ -18,8 +35,8 @@ const ContactUs = () => {
             Get in Touch
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Have questions about how you can help? We&apos;d love to hear from you.
-            Send us a message and we&apos;ll respond as soon as possible.
+            Have questions about how you can help? We&apos;d love to hear from
+            you. Send us a message and we&apos;ll respond as soon as possible.
           </p>
         </div>
       </section>
@@ -30,7 +47,7 @@ const ContactUs = () => {
             {/* Contact Form */}
             <div className="bg-white px-8 rounded-2xl shadow-sm">
               <h2 className="text-2xl font-semibold mb-6">Send us a message</h2>
-              <form className="space-y-6">
+              <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
                   <label
                     className="block text-sm font-medium text-gray-700 mb-1"
@@ -44,7 +61,9 @@ const ContactUs = () => {
                     placeholder="John Doe"
                     type="text"
                     value={contactForm.name}
-                    onChange={(e) => setContactForm({...contactForm, name: e.target.value})}
+                    onChange={(e) =>
+                      setContactForm({ ...contactForm, name: e.target.value })
+                    }
                   />
                 </div>
                 <div>
@@ -60,7 +79,9 @@ const ContactUs = () => {
                     placeholder="john@example.com"
                     type="email"
                     value={contactForm.email}
-                    onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
+                    onChange={(e) =>
+                      setContactForm({ ...contactForm, email: e.target.value })
+                    }
                   />
                 </div>
                 <div>
@@ -76,16 +97,22 @@ const ContactUs = () => {
                     placeholder="How can we help you?"
                     rows={4}
                     value={contactForm.message}
-                    onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
+                    onChange={(e) =>
+                      setContactForm({
+                        ...contactForm,
+                        message: e.target.value,
+                      })
+                    }
                   />
                 </div>
-                <button
+                <Button
                   className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center"
+                  isLoading={isSending}
                   type="submit"
                 >
                   Send Message
                   <Send className="ml-2 h-5 w-5" />
-                </button>
+                </Button>
               </form>
             </div>
             {/* Contact Information */}
@@ -149,7 +176,7 @@ const ContactUs = () => {
         </div>
       </section>
     </main>
-  )
-}
+  );
+};
 
 export default ContactUs;

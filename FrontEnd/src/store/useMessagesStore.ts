@@ -15,7 +15,7 @@ interface MessagesStore {
   messages: Message[];
   isSending: boolean;
   isGettingMessages: boolean;
-  sendMessage: (message: Message) => Promise<void>;
+  sendMessage: (message: any) => Promise<void>;
   getMessages: () => Promise<void>;
   toggleMessageReadStatus: (messageId: string, isRead: boolean) => Promise<void>;
   deleteMessage: (messageId: string) => Promise<void>; 

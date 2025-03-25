@@ -48,9 +48,8 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   };
 
   const handleShare = (event: Event) => {
-
     const eventUrl = `${window.location.origin}/event/${event._id}`;
-    
+
     navigator.clipboard.writeText(eventUrl).then(() => {
       console.log("Link copied to clipboard!");
     });
@@ -122,6 +121,29 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     default:
       progressData = null;
   }
+
+  const formatEventDate = (dateString: string, eventType: string) => {
+  const date = new Date(dateString);
+  
+  if (eventType === "volunteer") {
+    // For volunteer events, show full date with time
+    return date.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  } else {
+    // For other events, just show date
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+};
 
   return (
     <div
@@ -232,11 +254,11 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
               <div className="flex gap-4 items-center justify-between">
                 <span className="flex items-center gap-1">
                   <Calendar size={16} />
-                  Started on {event.startDate.split("T")[0]}
+                  Started on {formatEventDate(event.startDate, event.type)}
                 </span>
                 <span className="flex items-center gap-1">
                   <Calendar size={16} />
-                  Ends on {event.endDate.split("T")[0]}
+                  Ends on {formatEventDate(event.endDate, event.type)}
                 </span>
               </div>
             </div>

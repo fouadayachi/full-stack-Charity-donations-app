@@ -10,9 +10,10 @@ import EventGallery from "./EventGallery";
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 import useShowCases from "@/store/useShowCaseStore";
+import { ShowCaseSkeleton } from "./ShowCaseSkeleton";
 function ShowCaseDetailsPage() {
   const { id } = useParams();
-  const { getEvent, event } = useShowCases();
+  const { getEvent, event, isLoadingEvent } = useShowCases();
 
   useEffect(() => {
     getEvent(id);
@@ -35,15 +36,21 @@ function ShowCaseDetailsPage() {
         </NavbarContent>
       </HeroUINavbar>
       <main>
-        <EventHeader event={event} />
-        <div className="container mx-auto px-4 py-12">
-          <div className="max-w-6xl mx-auto">
-            <div>
-              <ResultsOverview event={event} />
-              <EventGallery event={event} />
+        {isLoadingEvent ? (
+          <ShowCaseSkeleton />
+        ) : (
+          <>
+            <EventHeader event={event} />
+            <div className="container mx-auto px-4 py-12">
+              <div className="max-w-6xl mx-auto">
+                <div>
+                  <ResultsOverview event={event} />
+                  <EventGallery event={event} />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
       </main>
     </div>
   );

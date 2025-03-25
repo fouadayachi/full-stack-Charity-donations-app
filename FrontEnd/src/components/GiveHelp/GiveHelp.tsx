@@ -73,7 +73,7 @@ const GiveHelp: React.FC = () => {
           <div className="max-w-6xl mx-auto px-4 py-4">
             <div className="flex flex-col md:flex-row gap-4 md:items-center">
               {/* Search Bar */}
-              <div className="relative w-1/3">
+              <div className="relative w-full sm:w-1/3">
                 <Search
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                   size={20}
@@ -87,7 +87,7 @@ const GiveHelp: React.FC = () => {
                 />
               </div>
               {/* Type Filter */}
-              <div className="flex gap-2 w-1/3">
+              <div className="flex gap-2 w-full sm:w-1/3">
                 {["all", "donation", "volunteer", "items"].map((type) => (
                   <Button
                     key={type}
@@ -104,7 +104,7 @@ const GiveHelp: React.FC = () => {
                 ))}
               </div>
               {/* Sort Dropdown */}
-              <div className="flex items-center gap-3 w-1/3">
+              <div className="flex items-center gap-3 w-full sm:w-1/3">
                 <Select
                   className="max-w-[200px]"
                   defaultSelectedKeys={["newest"]}

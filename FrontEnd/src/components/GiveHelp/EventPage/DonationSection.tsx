@@ -14,7 +14,7 @@ export function DonationSection({
   user: any;
   eventId: any;
 }) {
-  const [amount, setAmount] = useState<number>(0);
+  const [amount, setAmount] = useState<number>(10);
   const [name, setName] = useState<string>(
     user ? user.lastName + " " + user.firstName : ""
   );
@@ -87,18 +87,16 @@ export function DonationSection({
           <NumberInput
             isRequired
             className="w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-            defaultValue={6}
             formatOptions={{
               style: "currency",
               currency: "USD",
             }}
             label="Amount"
-            minValue={5}
             placeholder="Enter custom amount"
             size="md"
             value={amount}
             variant="bordered"
-            onValueChange={setAmount}
+            onValueChange={( value => value > 10 ? setAmount(value) : setAmount(10))}
           />
         </div>
         <div className="mb-6">

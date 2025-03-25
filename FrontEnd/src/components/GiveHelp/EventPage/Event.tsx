@@ -15,6 +15,8 @@ import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useAuthStore from "@/store/useAuthStore";
 import { FloatingBanner } from "./FloatingBanner";
+import { EventSkeleton } from "./EventSkeleton";
+import useEventsStore from "@/store/useEventsStore";
 export interface Event {
   _id?: string;
   title: string;
@@ -38,10 +40,12 @@ export interface Event {
 }
 interface EventDetailsPageProps {
   event: Event;
+  isLoadingEvent: boolean;
 }
-function EventDetailsPage({ event }: EventDetailsPageProps) {
+function EventDetailsPage({ event, isLoadingEvent }: EventDetailsPageProps) {
   const location = useLocation();
-  const {user} = useAuthStore();
+  const { user } = useAuthStore();
+  const { saveEvent, unsaveEvent } = useEventsStore();
   const [showBanner, setShowBanner] = useState(user ? false : true);
   const handleBannerDismiss = () => {
     setShowBanner(false);
@@ -73,9 +77,12 @@ function EventDetailsPage({ event }: EventDetailsPageProps) {
   // Format dates for display
   const formatDate = (dateString: Date) => {
     const options: Intl.DateTimeFormatOptions = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false // This will show AM/PM
     };
 
     const date = dateString ? new Date(dateString) : null;
@@ -98,7 +105,24 @@ function EventDetailsPage({ event }: EventDetailsPageProps) {
         return "Get Involved";
     }
   };
-  
+
+  const handleShare = () => {
+    const eventUrl = `${window.location.origin}/event/${event._id}`;
+
+    navigator.clipboard.writeText(eventUrl).then(() => {
+      console.log("Link copied to clipboard!");
+    });
+  };
+
+  const toggleSaveEvent = async () => {
+    const isSaved = user.savedEvents.includes(event._id);
+
+    if (isSaved) {
+      await unsaveEvent({ eventId : event._id }); // Unsave the event
+    } else {
+      await saveEvent({ eventId : event._id }); // Save the event
+    }
+  };
 
   useEffect(() => {
     // Scroll to the top of the page when the location changes
@@ -107,9 +131,7 @@ function EventDetailsPage({ event }: EventDetailsPageProps) {
 
   return (
     <div className="w-full bg-white">
-      {showBanner && (
-      <FloatingBanner onDismiss={handleBannerDismiss}  />
-    )}
+      {showBanner && <FloatingBanner onDismiss={handleBannerDismiss} />}
       <HeroUINavbar isBordered maxWidth="xl" position="sticky">
         <NavbarContent className=" w-full" justify="center">
           <NavbarBrand className="gap-3 max-w-fit">
@@ -119,25 +141,54 @@ function EventDetailsPage({ event }: EventDetailsPageProps) {
           </NavbarBrand>
         </NavbarContent>
       </HeroUINavbar>
-      <EventHeader
-        ctaText={getCtaText()}
-        description={event?.shortDescription}
-        mainImage={event?.mainImage}
-        title={event?.title}
-        onCtaClick={scrollToSection} 
-      />
-      <div className="container mx-auto px-4 py-8">
-        <EventDetails endDate={endDate} event={event} startDate={startDate} />
-        <EventGallery images={event?.images || []} />
-        <CallToAction/>
-        {event?.type === "donation" && <DonationSection eventId={event._id } id="donation-section" user={user}/>}
-        {event?.type === "volunteer" && <VolunteerSection eventId={event._id } id="volunteer-section" user={user}/>}
-        {event?.type === "items" && (
-          <DonateItemsSection eventId={event._id } id="donate-items-section" items={event?.targetItems || []} user={user} />
-        )}
-      </div>
+      {isLoadingEvent ? (
+        <EventSkeleton />
+      ) : (
+        <>
+          <EventHeader
+          ctaText={getCtaText()}
+            description={event?.shortDescription}
+            eventId={event?._id}
+            mainImage={event?.mainImage}
+            title={event?.title}
+            onCtaClick={scrollToSection}
+            onSave={toggleSaveEvent}
+            onShare={handleShare}
+          />
+          <div className="container mx-auto px-4 py-8">
+            <EventDetails
+              endDate={endDate}
+              event={event}
+              startDate={startDate}
+            />
+            <EventGallery images={event?.images || []} />
+            <CallToAction event={event}/>
+            {event?.type === "donation" && (
+              <DonationSection
+                eventId={event._id}
+                id="donation-section"
+                user={user}
+              />
+            )}
+            {event?.type === "volunteer" && (
+              <VolunteerSection
+                eventId={event._id}
+                id="volunteer-section"
+                user={user}
+              />
+            )}
+            {event?.type === "items" && (
+              <DonateItemsSection
+                eventId={event._id}
+                id="donate-items-section"
+                items={event?.targetItems || []}
+                user={user}
+              />
+            )}
+          </div>
+        </>
+      )}
     </div>
-    
   );
 }
 

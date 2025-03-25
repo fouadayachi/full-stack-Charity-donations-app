@@ -119,7 +119,7 @@ export const Navbar = () => {
             </DropdownTrigger>
             <DropdownMenu aria-label="Static Actions">
               <DropdownItem key={"myImpacts"} startContent={<Star />}>
-                My Impacts
+                <Link href="/impact">My Impacts</Link>
               </DropdownItem>
               <DropdownItem key={"settings"} startContent={<Settings />}>
                 settings

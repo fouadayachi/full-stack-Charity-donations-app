@@ -126,7 +126,7 @@ const useContributionsStore = create<ContributionsStore>((set) => ({
 
   confirmItemDonation: async (itemDonationId) => {
     try {
-      await axiosInstance.put(`/item-donations/confirm/${itemDonationId}`);
+      await axiosInstance.put(`/itemDonations/confirm/${itemDonationId}`);
       set((state) => ({
         itemDonations: state.itemDonations.map((itemDonation) =>
           itemDonation._id === itemDonationId ? { ...itemDonation, confirmed: true } : itemDonation

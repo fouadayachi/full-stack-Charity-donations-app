@@ -18,6 +18,7 @@ import { Dashboard } from "./components/Admin/Dashboard";
 import { AddEventPage } from "./components/Admin/Events/AddEventPage";
 import { AddShowcasePage } from "./components/Admin/ShowCase/AddShowcasePage";
 import { MessagesPage } from "./components/Admin/Messages/MessagesPage";
+import { SettingsPage } from "./pages/settings";
 
 function App() {
   const { checkAuth, isCheckingAuth, authenticated } = useAuthStore();
@@ -40,6 +41,7 @@ function App() {
       <Routes>
         <Route element={<IndexPage />} path="/" />
         <Route element={<Impact />} path="/impact" />
+        <Route element={<SettingsPage />} path="/settings" />
         <Route element={<EventPage />} path="/event/:id" />
         <Route element={<ShowCasePage />} path="/showcase/:id" />
         <Route element={<GetHelp />} path="/getHelp" />

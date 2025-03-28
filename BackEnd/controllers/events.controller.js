@@ -1,6 +1,9 @@
 import cloudinary from "../config/cloudinary.js";
+import Donation from "../models/donationModel.js";
 import Events from "../models/eventsModel.js";
+import ItemDonation from "../models/itemDonationModel.js";
 import User from "../models/userModel.js";
+import Volunteer from "../models/volunteerModel.js";
 
 export const createPost = async (req, res) => {
   try {
@@ -139,14 +142,11 @@ export const updateEvent = async (req, res) => {
 
     // const { mainImage, images } = req.files;
 
-    // Find the event by ID
     const event = await Events.findById(eventId);
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    // Validate required fields
-    console.log(type);
     if (
       !title ||
       !shortDescription ||
@@ -246,12 +246,13 @@ export const deleteEvent = async (req, res) => {
     if (!deletedEvent) {
       return res.status(404).json({ message: "Event not found" });
     }
-    // await User.updateMany(
-    //   { savedEvents: eventId },
-    //   { $pull: { savedEvents: eventId } }
-    // );
 
-    res.status(200).json({ message: "Event deleted successfully" });
+    // Delete associated contributions
+    await Donation.deleteMany({ eventId });
+    await ItemDonation.deleteMany({ eventId });
+    await Volunteer.deleteMany({ eventId });
+
+    res.status(200).json({ message: "Event and associated contributions deleted successfully" });
   } catch (error) {
     console.error("Error deleting event:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -263,14 +264,47 @@ export const getEvents = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const total = await Events.countDocuments();
     const events = await Events.find().limit(limit).sort({ createdAt: -1 });
-    res
-      .status(200)
-      .json({ message: "Posts fetched successfully", events: events, total });
+
+    // Add pendingContributions property to each event
+    const eventsWithPendingContributions = await Promise.all(
+      events.map(async (event) => {
+        let pendingContributions = 0;
+
+        if (event.type === "volunteer") {
+          pendingContributions = await Volunteer.countDocuments({
+            eventId: event._id,
+            status: "pending",
+          });
+        } else if (event.type === "items") {
+          pendingContributions = await ItemDonation.countDocuments({
+            eventId: event._id,
+            status: "pending",
+          });
+        } else if (event.type === "donation") {
+          pendingContributions = await Donation.countDocuments({
+            eventId: event._id,
+            status: "pending",
+          });
+        }
+
+        return {
+          ...event.toObject(),
+          pendingContributions,
+        };
+      })
+    );
+
+    res.status(200).json({
+      message: "Posts fetched successfully",
+      events: eventsWithPendingContributions,
+      total,
+    });
   } catch (error) {
     console.error("Error fetching posts:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 export const getEvent = async (req, res) => {
   try {
     const event = await Events.findById(req.params.id);

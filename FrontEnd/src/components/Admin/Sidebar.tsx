@@ -12,7 +12,11 @@ import {
   MessageCircle,
   UsersIcon,
 } from "lucide-react";
+import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import useDashStore from "../../store/useDashStore";
+import useMessagesStore from "../../store/useMessagesStore";
+import useRequestsStore from "../../store/useRequestsStore";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -21,6 +25,15 @@ interface SidebarProps {
 
 export const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
   const location = useLocation(); // Get the current location to determine the active item
+  const { pendingContributions, fetchPendingContributions } = useDashStore();
+  const { unreadMessagesCount, fetchUnreadMessagesCount } = useMessagesStore();
+  const { pendingRequestsCount, fetchPendingRequestsCount } = useRequestsStore();
+
+  useEffect(() => {
+    fetchPendingContributions();
+    fetchUnreadMessagesCount();
+    fetchPendingRequestsCount();
+  }, [fetchPendingContributions, fetchUnreadMessagesCount, fetchPendingRequestsCount]);
 
   const navItems = [
     {
@@ -34,6 +47,7 @@ export const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
       label: "Events",
       icon: <CalendarIcon size={20} />,
       path: "/admin/events", // Path for the Events item
+      badge: pendingContributions > 0 ? pendingContributions : null, // Add badge
     },
     {
       key: "showcases",
@@ -46,6 +60,7 @@ export const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
       label: "Requests",
       icon: <InboxIcon size={20} />,
       path: "/admin/requests", // Path for the Requests item
+      badge: pendingRequestsCount > 0 ? pendingRequestsCount : null, // Add badge for pending requests
     },
     {
       key: "users",
@@ -58,6 +73,7 @@ export const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
       label: "Messages",
       icon: <MessageCircle size={20} />,
       path: "/admin/messages", // Path for the Users item
+      badge: unreadMessagesCount > 0 ? unreadMessagesCount : null, // Add badge for unread messages
     },
   ];
 
@@ -101,13 +117,24 @@ export const Sidebar = ({ collapsed, setCollapsed }: SidebarProps) => {
                 }`}
                 to={item.path}
               >
-                <div className="flex items-center justify-between w-full">
+                <div className="flex items-center justify-between w-full relative">
                   <div className="flex items-center">
                     <div className={`${collapsed ? "mx-auto" : "mr-3"}`}>
                       {item.icon}
                     </div>
                     {!collapsed && <span>{item.label}</span>}
                   </div>
+                  {item.badge && (
+                    <span
+                      className={`${
+                        collapsed
+                          ? "text-xs flex items-center justify-center w-4 h-4 absolute -top-2 right-2"
+                          : "text-xs flex items-center justify-center px-2 py-1"
+                      } bg-[#6C5CE7] text-white font-bold rounded-full`}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
                 </div>
               </Link>
             </li>

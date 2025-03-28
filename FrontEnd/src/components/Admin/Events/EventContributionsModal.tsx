@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from "react";
+import useContributionsStore from "@/store/useContributionsStore";
 import {
   CheckCircle as CheckCircleIcon,
-  XCircle as XCircleIcon,
-  Eye as EyeIcon,
-  DollarSign as DollarSignIcon,
-  Users as UsersIcon,
-  Package as PackageIcon,
   Clock as ClockIcon,
-  Search as SearchIcon,
+  DollarSign as DollarSignIcon,
   Mail as MailIcon,
-  Phone as PhoneIcon,
   MapPin as MapPinIcon,
+  Package as PackageIcon,
+  Phone as PhoneIcon,
+  Search as SearchIcon,
+  Users as UsersIcon,
+  XCircle as XCircleIcon,
 } from "lucide-react";
-import useContributionsStore from "@/store/useContributionsStore";
+import React, { useEffect, useState } from "react";
 type PaymentMethod = "credit_card" | "paypal" | "google_pay" | "apple_pay";
 type EventType = "donation" | "volunteer" | "items";
 
@@ -47,6 +46,9 @@ export const EventContributionsModal: React.FC<EventContributionsModalProps> = (
     confirmVolunteer,
     confirmDonation,
     confirmItemDonation,
+    cancelVolunteer,
+    cancelDonation,
+    cancelItemDonation,
   } = useContributionsStore();
 
   useEffect(() => {
@@ -92,33 +94,32 @@ export const EventContributionsModal: React.FC<EventContributionsModalProps> = (
             .includes(searchQuery.toLowerCase()));
       const matchesStatus =
         statusFilter === "all" ||
-        (statusFilter === "confirmed" && contribution.confirmed) ||
-        (statusFilter === "pending" && !contribution.confirmed);
+        (statusFilter === "confirmed" && contribution.status === "confirmed") ||
+        (statusFilter === "pending" && contribution.status === "pending") ||
+        (statusFilter === "canceled" && contribution.status === "canceled");
 
       return matchesSearch && matchesStatus;
     }
   );
-  const handleConfirm = (id: string) => {
+  const handleConfirm = (id: string,eventId : any) => {
     if (event?.type === "donation") {
-      confirmDonation(id);
+      confirmDonation(id,eventId);
     } else if (event?.type === "volunteer") {
-      confirmVolunteer(id);
+      confirmVolunteer(id,eventId);
     } else if (event?.type === "items") {
-      confirmItemDonation(id);
+      confirmItemDonation(id,eventId);
     }
   };
-  // const handleReject = (id: string) => {
-  //   if (event?.type === "donation") {
-  //     setDonations(donations.filter((donation) => donation._id !== id));
-  //   } else if (event?.type === "volunteer") {
-  //     setVolunteers(volunteers.filter((volunteer) => volunteer._id !== id));
-  //   } else if (event?.type === "items") {
-  //     setItemDonations(itemDonations.filter((item) => item._id !== id));
-  //   }
-  // };
-  const handleViewDetails = (id: string) => {
-    console.log(`Viewing details for contribution with ID: ${id}`);
+  const handleCancel = (id: string,eventId : any) => {
+    if (event?.type === "donation") {
+      cancelDonation(id,eventId);
+    } else if (event?.type === "volunteer") {
+      cancelVolunteer(id,eventId);
+    } else if (event?.type === "items") {
+      cancelItemDonation(id,eventId);
+    }
   };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -148,19 +149,28 @@ export const EventContributionsModal: React.FC<EventContributionsModalProps> = (
         return method;
     }
   };
-  const getStatusBadge = (confirmed: boolean) => {
-    if (confirmed) {
-      return (
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-          <CheckCircleIcon className="mr-1" size={12} /> Confirmed
-        </span>
-      );
-    } else {
-      return (
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-          <ClockIcon className="mr-1" size={12} /> Pending
-        </span>
-      );
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "confirmed":
+        return (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            <CheckCircleIcon className="mr-1" size={12} /> Confirmed
+          </span>
+        );
+      case "pending":
+        return (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+            <ClockIcon className="mr-1" size={12} /> Pending
+          </span>
+        );
+      case "canceled":
+        return (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+            <XCircleIcon className="mr-1" size={12} /> Canceled
+          </span>
+        );
+      default:
+        return null;
     }
   };
   const getEventTypeIcon = () => {
@@ -237,6 +247,17 @@ export const EventContributionsModal: React.FC<EventContributionsModalProps> = (
               >
                 <ClockIcon className="mr-1" size={14} />
                 Pending
+              </button>
+              <button
+                className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center transition-colors ${
+                  statusFilter === "canceled"
+                    ? "bg-red-500 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+                onClick={() => setStatusFilter("canceled")}
+              >
+                <XCircleIcon className="mr-1" size={14} />
+                Canceled
               </button>
             </div>
             <div className="relative flex-1 w-full">
@@ -414,33 +435,43 @@ export const EventContributionsModal: React.FC<EventContributionsModalProps> = (
                         {formatDate(contribution.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(contribution.confirmed)}
+                        {getStatusBadge(contribution.status)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {!contribution.confirmed ? (
+                        {contribution.status === "pending" && (
                           <div className="flex items-center justify-center space-x-2">
                             <button
                               className="bg-[#48BB78] text-white p-1.5 rounded-full hover:bg-green-600 transition-colors"
                               title="Confirm Contribution"
-                              onClick={() => handleConfirm(contribution._id)}
+                              onClick={() => handleConfirm(contribution._id,event && event._id)}
                             >
                               <CheckCircleIcon size={16} />
                             </button>
                             <button
                               className="bg-[#F56565] text-white p-1.5 rounded-full hover:bg-red-600 transition-colors"
-                              title="Reject Contribution"
-                              // onClick={() => handleReject(contribution._id)}
+                              title="Cancel Contribution"
+                              onClick={() => handleCancel(contribution._id,event && event._id)}
                             >
                               <XCircleIcon size={16} />
                             </button>
                           </div>
-                        ) : (
+                        )}
+                        {contribution.status === "confirmed" && (
                           <button
-                            className="bg-[#3182CE] text-white px-3 py-1 rounded-md text-xs hover:bg-blue-600 transition-colors flex items-center mx-auto"
-                            onClick={() => handleViewDetails(contribution._id)}
+                            className="bg-[#F56565] text-white p-1.5 rounded-full hover:bg-red-600 transition-colors"
+                            title="Cancel Contribution"
+                            onClick={() => handleCancel(contribution._id,event && event._id)}
                           >
-                            <EyeIcon className="mr-1" size={12} />
-                            View Details
+                            <XCircleIcon size={16} />
+                          </button>
+                        )}
+                        {contribution.status === "canceled" && (
+                          <button
+                            className="bg-[#48BB78] text-white p-1.5 rounded-full hover:bg-green-600 transition-colors"
+                            title="Confirm Contribution"
+                            onClick={() => handleConfirm(contribution._id,event && event._id)}
+                          >
+                            <CheckCircleIcon size={16} />
                           </button>
                         )}
                       </td>

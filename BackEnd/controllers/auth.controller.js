@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
-import User from "../models/userModel.js";
 import generateToken from "../config/generateToken.js";
+import User from "../models/userModel.js";
 
 export const signUp = async (req, res) => {
   const { firstName, lastName, password, email,phone,address } = req.body;
@@ -102,6 +102,76 @@ export const getAllUsers = async (req, res) => {
       success: true,
       users,
       message: "Users retrieved successfully",
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+export const updateUserProfile = async (req, res) => {
+  const { userId, firstName, lastName, email, phone, address } = req.body;
+
+  if (!firstName || !lastName || !email) {
+    return res
+      .status(400)
+      .json({ success: false, message: "First name, last name, and email are required" });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    user.firstName = firstName;
+    user.lastName = lastName;
+    user.email = email;
+    user.phone = phone || "";
+    user.address = address || "";
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  const { userId, currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Current and new passwords are required" });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordCorrect) {
+      return res.status(400).json({ success: false, message: "Current password is incorrect" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password updated successfully",
     });
   } catch (error) {
     return res

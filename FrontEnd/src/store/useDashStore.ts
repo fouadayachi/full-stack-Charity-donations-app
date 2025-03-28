@@ -19,8 +19,10 @@ interface DashboardData {
   };
 }
 interface DashStore {
-    data : DashboardData;
-    getStats: () => Promise<void>
+    data: DashboardData;
+    pendingContributions: number; // New state for pending contributions
+    getStats: () => Promise<void>;
+    fetchPendingContributions: () => Promise<void>; // New method
 }
 const useDashStore = create<DashStore>((set) => ({
     data: {
@@ -39,6 +41,7 @@ const useDashStore = create<DashStore>((set) => ({
             highUrgency: ""
         }
     },
+    pendingContributions: 0,
     getStats : async () => {
         try {
             const response = await axiosInstance.get("/dashboard/getStats");
@@ -48,6 +51,16 @@ const useDashStore = create<DashStore>((set) => ({
             console.log(error);
             toast.error("Failed to load dashboard data");
             
+        }
+    },
+    fetchPendingContributions: async () => {
+        try {
+            const response = await axiosInstance.get("/dashboard/getPendingContributions");
+            
+            set({ pendingContributions: response.data.data });
+        } catch (error) {
+            console.log(error);
+            toast.error("Failed to load pending contributions");
         }
     }
   

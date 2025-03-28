@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 
-import { ProgressBar } from "./ProgressBar";
 import { Button } from "@heroui/button";
-import {Navigation as Nav} from "lucide-react"; 
 import { Link } from "@heroui/link";
+import { Navigation as Nav } from "lucide-react";
+import { ProgressBar } from "./ProgressBar";
 
 interface Contribution {
   _id: string;
@@ -12,7 +12,7 @@ interface Contribution {
   createdAt: string;
   updatedAt: string;
   items?: Object;
-  confirmed: boolean;
+  status: string;
   type: string;
 }
 interface EventProgressSectionProps {
@@ -97,8 +97,7 @@ export const EventProgressSection: React.FC<EventProgressSectionProps> = ({
 
         if (type === "Donation") {
           const total = eventContributions.reduce(
-            (sum, c) =>
-              sum + (c.amount && c.confirmed ? c.amount : 0 && counter++),
+            (sum, c) => sum + (c.amount && c.status === "confirmed" ? c.amount : 0),
             0
           );
 
@@ -107,9 +106,9 @@ export const EventProgressSection: React.FC<EventProgressSectionProps> = ({
           const total = eventContributions.reduce(
             (sum, c) =>
               sum +
-              (c.event.volunteerHours && c.confirmed
+              (c.event.volunteerHours && c.status === "confirmed"
                 ? parseInt(c.event.volunteerHours)
-                : 0 && counter++),
+                : 0),
             0
           );
 
@@ -118,7 +117,7 @@ export const EventProgressSection: React.FC<EventProgressSectionProps> = ({
           const total = eventContributions.reduce(
             (sum, c) =>
               sum +
-              (c.items && c.confirmed ? countItems(c.items) : 0 && counter++),
+              (c.items && c.status === "confirmed" ? countItems(c.items) : 0),
             0
           );
 
@@ -146,7 +145,7 @@ export const EventProgressSection: React.FC<EventProgressSectionProps> = ({
         let counter = 0;
 
         for (let event of eventContributions) {
-          if (event.confirmed) {
+          if (event.status === "confirmed") {
             counter++;
           }
         }

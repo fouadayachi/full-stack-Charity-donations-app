@@ -1,7 +1,7 @@
+import { User } from "@/components/Admin/Users/UsersPage";
 import { toast } from "react-toastify";
 import { create } from "zustand";
 import axiosInstance from "../config/axios";
-import { User } from "@/components/Admin/Users/UsersPage";
 
 interface AuthStore {
   authenticated: boolean;
@@ -9,6 +9,7 @@ interface AuthStore {
   isLoggingIn: boolean;
   isSigningUp: boolean;
   isCheckingAuth: boolean;
+  isUpdating: boolean;
   contributions: Array<any>;
   users: Array<User>;
   signup: (data: any) => Promise<void>;
@@ -17,6 +18,8 @@ interface AuthStore {
   getContributions: () => Promise<void>;
   checkAuth: () => Promise<void>;
   getAllUsers: () => Promise<void>; 
+  updateProfile: (formData: any) => Promise<void>;
+  changePassword: (data: { currentPassword: string; newPassword: string }) => Promise<void>;
 }
 
 const useAuthStore = create<AuthStore>((set) => ({
@@ -25,6 +28,7 @@ const useAuthStore = create<AuthStore>((set) => ({
   isLoggingIn: false,
   isSigningUp: false,
   isCheckingAuth: false,
+  isUpdating: false,
   contributions: [],
   users : [],
 
@@ -113,13 +117,40 @@ const useAuthStore = create<AuthStore>((set) => ({
       const res = await axiosInstance.get("/auth/getAllUsers");
 
       if (res.data.success) {
-
-
         set({ users: res.data.users }); 
       }
     } catch (error: any) {
       console.log(error);
       toast.error(error.response.data.message);
+    }
+  },
+
+  updateProfile: async (formData) => {
+    set({ isUpdating: true });
+    try {
+      const response = await axiosInstance.put('/auth/updateProfile', formData);
+
+      if (response.data.success) {
+        set({user : response.data.user});
+        toast.success(response.data.message);
+      } 
+    } catch (error : any) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    }
+    set({ isUpdating: false });
+  },
+
+  changePassword: async (data) => {
+    try {
+      const response = await axiosInstance.put('/auth/changePassword', data);
+
+      if (response.data.success) {
+        toast.success(response.data.message);
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to change password");
     }
   },
 }));

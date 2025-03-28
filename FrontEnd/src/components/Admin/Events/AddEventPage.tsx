@@ -2,8 +2,10 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/label-has-associated-control */
+import useEventsStore from "@/store/useEventsStore";
 import { Button } from "@heroui/button";
 import { DatePicker } from "@heroui/date-picker";
+import { Link } from "@heroui/link";
 import { NumberInput } from "@heroui/number-input";
 import { getLocalTimeZone, now } from "@internationalized/date";
 import {
@@ -23,8 +25,6 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 import ImageUpload from "../ImageUpload";
-import useEventsStore from "@/store/useEventsStore";
-import { Link } from "@heroui/link";
 type EventType = "donation" | "volunteer" | "items" | "";
 interface FormState {
   title: string;
@@ -41,6 +41,7 @@ interface FormState {
   items?: Array<{
     name: string;
     quantityNeeded: number;
+    quantityDonated?: number; 
   }>;
   mainImage?: File | null;
   images?: File[];
@@ -108,15 +109,17 @@ export const AddEventPage: React.FC = () => {
   };
   const handleItemChange = (
     index: number,
-    field: "name" | "quantityNeeded",
+    field: "name" | "quantityNeeded" | "quantityDonated", 
     value: string | number
   ) => {
     const updatedItems = [...(formState.items || [])];
 
     if (field === "name") {
       updatedItems[index].name = value as string;
-    } else {
+    } else if (field === "quantityNeeded") {
       updatedItems[index].quantityNeeded = value as number;
+    } else {
+      updatedItems[index].quantityDonated = value as number; 
     }
     setFormState({
       ...formState,
@@ -175,8 +178,6 @@ export const AddEventPage: React.FC = () => {
     if (formState.eventType === "donation") {
       if (!formState.targetAmount)
         newErrors.targetAmount = "Target amount is required";
-      if (!formState.currentAmount)
-        newErrors.currentAmount = "current amount is required";
     } else if (formState.eventType === "volunteer") {
       if (!formState.volunteersNeeded)
         newErrors.volunteersNeeded = "Number of volunteers is required";
@@ -693,6 +694,12 @@ export const AddEventPage: React.FC = () => {
                             className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                             scope="col"
                           >
+                            Quantity Donated
+                          </th>
+                          <th
+                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            scope="col"
+                          >
                             Actions
                           </th>
                         </tr>
@@ -719,15 +726,27 @@ export const AddEventPage: React.FC = () => {
                               <input
                                 className="block w-full border border-gray-300 rounded-md py-1 px-2 shadow-sm focus:outline-none focus:ring-[#3182CE] focus:border-[#3182CE] text-sm"
                                 min="1"
-                                placeholder="quantityNeeded"
+                                placeholder="Quantity Needed"
                                 type="number"
-                                value={item.quantityNeeded || ""}
+                                value={item.quantityNeeded || 1} // Default value set to 1
                                 onChange={(e) =>
                                   handleItemChange(
                                     index,
                                     "quantityNeeded",
                                     parseInt(e.target.value || "0", 10)
                                   )
+                                }
+                              />
+                            </td>
+                            <td className="px-4 py-2">
+                              <input
+                                className="block w-full border border-gray-300 rounded-md py-1 px-2 shadow-sm focus:outline-none focus:ring-[#3182CE] focus:border-[#3182CE] text-sm"
+                                min="0"
+                                placeholder="Quantity Donated"
+                                type="number"
+                                value={item.quantityDonated || 0} // Default value set to 0
+                                onChange={(e) =>
+                                  handleItemChange(index, "quantityDonated", parseInt(e.target.value || "0", 10))
                                 }
                               />
                             </td>

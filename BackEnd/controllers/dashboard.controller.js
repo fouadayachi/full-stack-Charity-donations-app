@@ -1,7 +1,10 @@
-import Events from "../models/eventsModel.js";
-import User from "../models/userModel.js";
 import Donation from "../models/donationModel.js";
+import Events from "../models/eventsModel.js";
+import ItemDonation from "../models/itemDonationModel.js";
 import RequestHelp from "../models/requestsModel.js";
+import User from "../models/userModel.js";
+import Volunteer from "../models/volunteerModel.js";
+
 export const getDashboardData = async (req, res) => {
   try {
     // Get the current date and the date one month ago
@@ -97,6 +100,24 @@ export const getDashboardData = async (req, res) => {
       });
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getPendingContributions = async (req, res) => {
+  try {
+    const pendingVolunteers = await Volunteer.countDocuments({ status: "pending" });
+    const pendingItemDonations = await ItemDonation.countDocuments({ status: "pending" });
+    const pendingMonetaryDonations = await Donation.countDocuments({ status: "pending" });
+
+    const totalPendingContributions = pendingVolunteers + pendingItemDonations + pendingMonetaryDonations;
+
+    res.status(200).json({
+      message: "Pending contributions fetched successfully",
+      data: totalPendingContributions,
+    });
+  } catch (error) {
+    console.error("Error fetching pending contributions:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

@@ -1,6 +1,6 @@
+import multer from 'multer';
 import cloudinary from "../config/cloudinary.js";
 import RequestHelp from "../models/requestsModel.js";
-import multer from 'multer';
 const upload = multer({ storage: multer.memoryStorage() });
 
 
@@ -131,5 +131,19 @@ export const refuseRequest = async (req, res) => {
   } catch (error) {
     console.error("Error refusing request:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const getPendingRequestsCount = async (req, res) => {
+  try {
+    const pendingRequestsCount = await RequestHelp.countDocuments({ status: "pending" });
+
+    res.status(200).json({
+      message: "Pending requests count fetched successfully",
+      data: pendingRequestsCount,
+    });
+  } catch (error) {
+    console.error("Error fetching pending requests count:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

@@ -19,7 +19,7 @@ export const addVolunteer = async (req, res) => {
       email,
       phone,
       address,
-      confirmed: false,
+      status: "pending",
     });
 
     const savedVolunteer = await volunteer.save();
@@ -42,21 +42,24 @@ export const confirmVolunteer = async (req, res) => {
       return res.status(400).json({ message: "The volunteer was not found" });
     }
 
-    if (volunteer.confirmed) {
+    if (volunteer.status === "confirmed") {
       return res
         .status(400)
         .json({ message: "The volunteer has already been confirmed" });
     }
+    
+
     const event = await Events.findById(volunteer.eventId);
     if (!event) {
       return res.status(400).json({ message: "The event was not found" });
     }
 
-    volunteer.confirmed = true;
+    volunteer.status = "confirmed";
     await volunteer.save();
-    if(volunteer.userId){
+    
+    if (volunteer.userId) {
       const user = await User.findById(volunteer.userId);
-      if(user){
+      if (user) {
         user.impact.totalHours += event.volunteerHours;
         user.impact.totalContributions += 1;
         await user.save();
@@ -87,7 +90,7 @@ export const getVolunteers = async (req, res) => {
     const volunteerWithEventDetails = volunteer.map((volunteer) => ({
       _id: volunteer._id,
       event: volunteer.eventId,
-      confirmed: volunteer.confirmed,
+      status: volunteer.status,
       createdAt: volunteer.createdAt,
       updatedAt: volunteer.updatedAt,
     }));
@@ -95,6 +98,49 @@ export const getVolunteers = async (req, res) => {
     res.status(200).json(volunteerWithEventDetails);
   } catch (error) {
     console.error("Error getting volunteer:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const cancelVolunteer = async (req, res) => {
+  const volunteerId = req.params.id;
+  try {
+    const volunteer = await Volunteer.findById(volunteerId);
+    if (!volunteer) {
+      return res.status(400).json({ message: "The volunteer was not found" });
+    }
+
+    if (volunteer.status === "canceled") {
+      return res
+        .status(400)
+        .json({ message: "The volunteer has already been canceled" });
+    }
+
+    if (volunteer.status === "confirmed") {
+      const event = await Events.findById(volunteer.eventId);
+      if (event) {
+        event.currentVolunteers -= 1;
+        await event.save();
+      }
+
+      if (volunteer.userId) {
+        const user = await User.findById(volunteer.userId);
+        if (user) {
+          user.impact.totalHours -= event.volunteerHours;
+          user.impact.totalContributions -= 1;
+          await user.save();
+        }
+      }
+    }
+
+    volunteer.status = "canceled";
+    await volunteer.save();
+
+    res.status(200).json({
+      message: "Volunteer canceled successfully",
+    });
+  } catch (error) {
+    console.error("Error canceling volunteer:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

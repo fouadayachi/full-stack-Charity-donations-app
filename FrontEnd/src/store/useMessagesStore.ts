@@ -13,16 +13,19 @@ interface Message {
 
 interface MessagesStore {
   messages: Message[];
+  unreadMessagesCount: number; 
   isSending: boolean;
   isGettingMessages: boolean;
   sendMessage: (message: any) => Promise<void>;
   getMessages: () => Promise<void>;
+  fetchUnreadMessagesCount: () => Promise<void>; 
   toggleMessageReadStatus: (messageId: string, isRead: boolean) => Promise<void>;
   deleteMessage: (messageId: string) => Promise<void>; 
 }
 
 const useMessagesStore = create<MessagesStore>((set) => ({
   messages: [],
+  unreadMessagesCount: 0,
   isSending: false,
   isGettingMessages: false,
   sendMessage: async (message) => {
@@ -53,6 +56,16 @@ const useMessagesStore = create<MessagesStore>((set) => ({
     }
     set({ isGettingMessages: false });
   },
+  fetchUnreadMessagesCount: async () => {
+    try {
+      const response = await axiosInstance.get("/messages/getUnreadMessagesCount");
+
+      set({ unreadMessagesCount: response.data.data });
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to fetch unread messages count");
+    }
+  },
   toggleMessageReadStatus: async (messageId, isRead) => {
     try {
       const response = await axiosInstance.put(`/messages/toggleReadStatus/${messageId}`, {
@@ -64,6 +77,7 @@ const useMessagesStore = create<MessagesStore>((set) => ({
           messages: state.messages.map((msg) =>
             msg._id === messageId ? { ...msg, isRead  } : msg
           ),
+          unreadMessagesCount : isRead === true ? state.unreadMessagesCount - 1 : state.unreadMessagesCount + 1
         }));
       }
     } catch (error) {
@@ -77,6 +91,7 @@ const useMessagesStore = create<MessagesStore>((set) => ({
 
       if (response.status === 200) {
         set((state) => ({
+          unreadMessagesCount : state.messages.find((msg) => msg._id === messageId)?.isRead === false ? state.unreadMessagesCount - 1 : state.unreadMessagesCount,
           messages: state.messages.filter((msg) => msg._id !== messageId),
         }));
         toast.success("Message deleted successfully");

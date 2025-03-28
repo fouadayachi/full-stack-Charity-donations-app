@@ -82,10 +82,14 @@ export const Navbar = () => {
               </DropdownTrigger>
               <DropdownMenu aria-label="Static Actions">
                 <DropdownItem key={"myImpacts"} startContent={<Star />}>
-                  <Link href="/impact">My Impacts</Link>
+                  <Link color="foreground" href="/impact">
+                    My Impacts
+                  </Link>
                 </DropdownItem>
                 <DropdownItem key={"settings"} startContent={<Settings />}>
-                  settings
+                  <Link color="foreground" href="/settings">
+                    Settings
+                  </Link>
                 </DropdownItem>
                 <DropdownItem
                   key={"Logout"}
@@ -119,10 +123,14 @@ export const Navbar = () => {
             </DropdownTrigger>
             <DropdownMenu aria-label="Static Actions">
               <DropdownItem key={"myImpacts"} startContent={<Star />}>
-                <Link href="/impact">My Impacts</Link>
+                <Link color="foreground" href="/impact">
+                  My Impacts
+                </Link>
               </DropdownItem>
               <DropdownItem key={"settings"} startContent={<Settings />}>
-                settings
+                <Link color="foreground" href="/settings">
+                  Settings
+                </Link>
               </DropdownItem>
               <DropdownItem
                 key={"Logout"}

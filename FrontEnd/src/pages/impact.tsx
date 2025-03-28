@@ -25,7 +25,11 @@ function Impact() {
   const filteredContributions = contributions &&  contributions.filter((contribution) => {
     const matchesType =
       filterType === "All" || contribution.type === filterType;
-    const matchesStatus = status === "All" || (contribution.confirmed && status === "Confirmed") || (!contribution.confirmed && status === "Pending");
+    const matchesStatus =
+      status === "All" ||
+      (contribution.status === "confirmed" && status === "Confirmed") ||
+      (contribution.status === "pending" && status === "Pending") ||
+      (contribution.status === "canceled" && status === "Canceled");
 
     return matchesType && matchesStatus;
   });

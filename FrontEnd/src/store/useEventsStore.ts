@@ -2,6 +2,7 @@ import { toast } from "react-toastify";
 import { create } from "zustand";
 import axiosInstance from "../config/axios";
 import useAuthStore from "./useAuthStore";
+import useDashStore from "./useDashStore"; // Import useDashStore
 
 interface EventsStore {
   events: any;
@@ -37,9 +38,14 @@ const useEventsStore = create<EventsStore>((set, get) => ({
     try {
       const response = await axiosInstance.get("/admin/events", { params });
 
-      set({ events: response.data.events });
+      set({
+        events: response.data.events.map((event: any) => ({
+          ...event,
+          pendingContributions: event.pendingContributions || 0, // Ensure the property exists
+        })),
+      });
       set({ totalEvents: response.data.total });
-    } catch (error : any) {
+    } catch (error: any) {
       console.log(error);
       toast.error(error.response.data.message);
     }
@@ -134,6 +140,9 @@ const useEventsStore = create<EventsStore>((set, get) => ({
 
   deleteEvent: async (eventId) => {
     try {
+      const eventToDelete = get().events.find((event: any) => event._id === eventId);
+      const pendingContributionsToDeduct = eventToDelete?.pendingContributions || 0;
+
       await axiosInstance.delete(`/admin/deleteEvent/${eventId}`);
 
       set((state) => ({
@@ -145,8 +154,13 @@ const useEventsStore = create<EventsStore>((set, get) => ({
         set({ event: null });
       }
 
+      // Update pendingContributions in useDashStore
+      useDashStore.setState((state) => ({
+        pendingContributions: Math.max(state.pendingContributions - pendingContributionsToDeduct, 0),
+      }));
+
       toast.success("Event deleted successfully");
-    } catch (error : any) {
+    } catch (error: any) {
       console.error("Delete error:", error);
       toast.error(error.response?.data?.message || "Failed to delete event");
     }

@@ -2,7 +2,6 @@
 import useEventsStore from "@/store/useEventsStore";
 import { Button } from "@heroui/button";
 import { Link } from "@heroui/link";
-import { Select, SelectItem } from "@heroui/select";
 import {
   ExternalLink,
   Eye,
@@ -19,7 +18,6 @@ type EventStatus = "active" | "completed" | "canceled";
 const EventsPage: React.FC = () => {
   const [selectedType, setSelectedType] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [sortBy, setSortBy] = useState<string>("newest");
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isContributionsModalOpen, setIsContributionsModalOpen] = useState(
     false
@@ -32,9 +30,6 @@ const EventsPage: React.FC = () => {
     updateEvent,
   } = useEventsStore();
 
-  const handleSelectionChange = (e: any) => {
-    setSortBy(e.target.value);
-  };
   const filteredEvents = events.filter((event: any) => {
     const matchesType = selectedType === "all" || event.type === selectedType;
     const matchesSearch = event.title
@@ -43,7 +38,7 @@ const EventsPage: React.FC = () => {
 
     return matchesType && matchesSearch;
   });
-  // Helper function to get type badge color
+
   const getTypeBadgeColor = (type: EventType) => {
     switch (type) {
       case "donation":
@@ -56,7 +51,7 @@ const EventsPage: React.FC = () => {
         return "#718096";
     }
   };
-  // Helper function to get status icon and color
+
   const getStatusIcon = (status: EventStatus) => {
     switch (status) {
       case "active":
@@ -116,9 +111,9 @@ const EventsPage: React.FC = () => {
     }
   };
 
-  function handleViewContributions(event : any): void {
-    setSelectedEvent(event)
-    setIsContributionsModalOpen(true)
+  function handleViewContributions(event: any): void {
+    setSelectedEvent(event);
+    setIsContributionsModalOpen(true);
   }
 
   function handleUpdateClicked(event: any): void {
@@ -184,18 +179,6 @@ const EventsPage: React.FC = () => {
               </Button>
             ))}
           </div>
-          {/* Sort Dropdown */}
-          <Select
-            className="max-w-[200px]"
-            defaultSelectedKeys={["newest"]}
-            selectedKeys={[sortBy]}
-            variant="bordered"
-            onChange={handleSelectionChange}
-          >
-            <SelectItem key="newest">Newest First</SelectItem>
-            <SelectItem key="urgent">Most Urgent</SelectItem>
-            <SelectItem key="ending">Ending Soonest</SelectItem>
-          </Select>
         </div>
       </div>
       {filteredEvents.length > 0 ? (
@@ -268,7 +251,7 @@ const EventsPage: React.FC = () => {
 
                   return (
                     <tr
-                      key={event.id}
+                      key={event._id}
                       className={
                         index % 2 === 0
                           ? "bg-white hover:bg-[#F8FAFC]"
@@ -328,16 +311,23 @@ const EventsPage: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
                         {event.endDate.split("T")[0]}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                        <Button
-                          color="secondary"
-                          size="sm"
-                          startContent={<Eye size={15} />}
-                          variant="bordered"
-                          onPress={() => handleViewContributions(event)}
-                        >
-                          View
-                        </Button>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center ">
+                        <div className="relative">
+                          <Button
+                            color="secondary"
+                            size="sm"
+                            startContent={<Eye size={15} />}
+                            variant="bordered"
+                            onPress={() => handleViewContributions(event)}
+                          >
+                            View
+                          </Button>
+                          {event.pendingContributions > 0 && (
+                            <span className="absolute -top-3 right-1  bg-secondary-500 text-white text-xs font-bold size-6 flex items-center justify-center rounded-full">
+                              {event.pendingContributions}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
                         <button

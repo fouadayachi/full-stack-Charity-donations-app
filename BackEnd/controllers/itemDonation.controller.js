@@ -33,7 +33,7 @@ export const addItemDonation = async (req, res) => {
       email,
       phone,
       address,
-      confirmed: false,
+      status: "pending",
     });
 
     const savedItemDonation = await itemDonation.save();
@@ -53,42 +53,45 @@ export const confirmItemDonation = async (req, res) => {
   try {
     const itemDonation = await ItemDonation.findById(itemDonationId);
     if (!itemDonation) {
-      return res
-        .status(400)
-        .json({ message: "The itemDonation was not found" });
+      return res.status(400).json({ message: "The item Donation was not found" });
     }
 
-    if (itemDonation.confirmed) {
+    if (itemDonation.status === "confirmed") {
       return res
         .status(400)
         .json({ message: "The itemDonation has already been confirmed" });
     }
+    
+
+
     const event = await Events.findById(itemDonation.eventId);
     if (!event) {
       return res.status(400).json({ message: "The event was not found" });
     }
 
-    itemDonation.confirmed = true;
+    itemDonation.status = "confirmed";
     await itemDonation.save();
+    
     let totalItems = 0;
-
     for (let item of itemDonation.items) {
       const targetItem = event.targetItems.find(
         (eventItem) => eventItem.name === item.name
       );
       if (targetItem) {
         targetItem.quantityDonated += item.quantityDonated;
-        totalItems += item.quantityDonated
+        totalItems += item.quantityDonated;
       }
     }
-    if(itemDonation.userId){
+    
+    if (itemDonation.userId) {
       const user = await User.findById(itemDonation.userId);
-      if(user){
+      if (user) {
         user.impact.totalItems += totalItems;
         user.impact.totalContributions += 1;
         await user.save();
       }
     }
+    
     await event.save();
     res.status(201).json({
       message: "ItemDonation confirmed successfully",
@@ -98,7 +101,6 @@ export const confirmItemDonation = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 export const getItemDonation = async (req, res) => {
   const { userId } = req.body;
 
@@ -113,7 +115,7 @@ export const getItemDonation = async (req, res) => {
       _id: itemDonation._id,
       event: itemDonation.eventId,
       items: itemDonation.items,
-      confirmed: itemDonation.confirmed,
+      status: itemDonation.status,
       createdAt: itemDonation.createdAt,
       updatedAt: itemDonation.updatedAt,
     }));
@@ -121,6 +123,60 @@ export const getItemDonation = async (req, res) => {
     res.status(200).json(itemDonationWithEventDetails);
   } catch (error) {
     console.error("Error getting itemDonations:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const cancelItemDonation = async (req, res) => {
+  const itemDonationId = req.params.id;
+  try {
+    const itemDonation = await ItemDonation.findById(itemDonationId);
+    if (!itemDonation) {
+      return res.status(400).json({ message: "The item donation was not found" });
+    }
+
+    if (itemDonation.status === "canceled") {
+      return res
+        .status(400)
+        .json({ message: "The item donation has already been canceled" });
+    }
+
+    if (itemDonation.status === "confirmed") {
+      const event = await Events.findById(itemDonation.eventId);
+      if (event) {
+        for (let item of itemDonation.items) {
+          const targetItem = event.targetItems.find(
+            (eventItem) => eventItem.name === item.name
+          );
+          if (targetItem) {
+            targetItem.quantityDonated -= item.quantityDonated;
+          }
+        }
+
+        if (itemDonation.userId) {
+          const user = await User.findById(itemDonation.userId);
+          if (user) {
+            user.impact.totalItems -= itemDonation.items.reduce(
+              (sum, item) => sum + item.quantityDonated,
+              0
+            );
+            user.impact.totalContributions -= 1;
+            await user.save();
+          }
+        }
+
+        await event.save();
+      }
+    }
+
+    itemDonation.status = "canceled";
+    await itemDonation.save();
+
+    res.status(200).json({
+      message: "Item donation canceled successfully",
+    });
+  } catch (error) {
+    console.error("Error canceling item donation:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

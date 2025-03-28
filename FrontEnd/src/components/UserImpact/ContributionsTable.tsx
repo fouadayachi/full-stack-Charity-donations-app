@@ -9,8 +9,8 @@ interface Contribution {
   createdAt: string;
   updatedAt: string;
   items?: Object;
-  confirmed: boolean;
   type: string;
+  status: string;
 }
 interface ContributionsTableProps {
   contributions: Contribution[];
@@ -57,7 +57,7 @@ export const ContributionsTable: React.FC<ContributionsTableProps> = ({
     <div className="bg-white rounded-lg shadow overflow-hidden">
       <div className="bg-gray-50 p-4 border-b border-gray-200">
         <div className="flex flex-col md:flex-row md:items-center md:gap-6 gap-4">
-          <div className="flex flex-col md:flex-row md:items-center  gap-3">
+          <div className="flex flex-col  gap-2">
             <span className="text-sm font-medium text-gray-700 md:mr-2">
               Type:
             </span>
@@ -79,10 +79,10 @@ export const ContributionsTable: React.FC<ContributionsTableProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col  gap-2">
             <span className="text-sm font-medium text-gray-700">Status:</span>
             <div className="flex items-center gap-2">
-              {["All", "Confirmed", "Pending"].map((s) => (
+              {["All", "Confirmed", "Pending","Canceled"].map((s) => (
                 <Button
                   key={s}
                   className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
@@ -103,7 +103,8 @@ export const ContributionsTable: React.FC<ContributionsTableProps> = ({
             className="max-w-[200px]"
             defaultSelectedKeys={["newest"]}
             label="Period : "
-            labelPlacement="outside-left"
+            labelPlacement="outside"
+            radius="sm"
             selectedKeys={[filterTime]}
             size="md"
             variant="bordered"
@@ -178,12 +179,14 @@ export const ContributionsTable: React.FC<ContributionsTableProps> = ({
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
                     className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      contribution.confirmed
+                      contribution.status === "confirmed"
                         ? "bg-green-100 text-green-800"
-                        : "bg-yellow-100 text-yellow-800"
+                        : contribution.status === "pending"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-red-100 text-red-800"
                     }`}
                   >
-                    {contribution.confirmed === true ? "Confirmed" : "Pending"}
+                    {contribution.status.charAt(0).toUpperCase() + contribution.status.slice(1)}
                   </span>
                 </td>
               </tr>

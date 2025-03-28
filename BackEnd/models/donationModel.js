@@ -14,7 +14,7 @@ const donationSchema = new mongoose.Schema(
     amount: {
       type: Number,
       required: true,
-      min: 10, // Ensure the donation amount is at least 1
+      min: 10,
     },
     paymentMethod: {
       type: String,
@@ -36,9 +36,10 @@ const donationSchema = new mongoose.Schema(
       trim: true,
       required: true,
     },
-    confirmed: {
-      type: Boolean,
-      default: false,
+    status: {
+      type: String,
+      enum: ["confirmed", "pending", "canceled"],
+      default: "pending",
     },
   },
   { timestamps: true }

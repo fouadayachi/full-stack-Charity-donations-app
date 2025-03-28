@@ -1,6 +1,8 @@
 import { toast } from "react-toastify";
 import { create } from "zustand";
 import axiosInstance from "../config/axios";
+import useEventsStore from "./useEventsStore";
+import useDashStore from "./useDashStore";
 
 type PaymentMethod = "credit_card" | "paypal" | "google_pay" | "apple_pay";
 
@@ -13,12 +15,10 @@ interface Donation {
   name: string;
   email: string;
   phone: string;
-  confirmed: boolean;
+  status: "confirmed" | "canceled" | "pending";
   createdAt: string;
   updatedAt: string;
 }
-
-
 
 interface Volunteer {
   _id: string;
@@ -28,7 +28,7 @@ interface Volunteer {
   email: string;
   phone: string;
   address: string;
-  confirmed: boolean;
+  status: "confirmed" | "canceled" | "pending";
   createdAt: string;
   updatedAt: string;
 }
@@ -45,7 +45,7 @@ interface ItemDonation {
   email: string;
   phone: string;
   address: string;
-  confirmed: boolean;
+  status: "confirmed" | "canceled" | "pending";
   createdAt: string;
   updatedAt: string;
 }
@@ -58,99 +58,225 @@ interface ContributionsStore {
   getDonations: (eventId: string) => Promise<void>;
   getItemDonations: (eventId: string) => Promise<void>;
   getVolunteers: (eventId: string) => Promise<void>;
-  confirmDonation: (donationId: string) => Promise<void>;
-  confirmItemDonation: (itemDonationId: string) => Promise<void>;
-  confirmVolunteer: (volunteerId: string) => Promise<void>;
+  confirmDonation: (donationId: string, eventId: string) => Promise<void>;
+  cancelDonation: (donationId: string, eventId: string) => Promise<void>;
+  confirmItemDonation: (
+    itemDonationId: string,
+    eventId: string
+  ) => Promise<void>;
+  cancelItemDonation: (
+    itemDonationId: string,
+    eventId: string
+  ) => Promise<void>;
+  confirmVolunteer: (volunteerId: string, eventId: string) => Promise<void>;
+  cancelVolunteer: (volunteerId: string, eventId: string) => Promise<void>;
+  updatePendingContributions: (eventId: string) => void;
 }
 
-const useContributionsStore = create<ContributionsStore>((set) => ({
+const useContributionsStore = create<ContributionsStore>((set, get) => ({
   donations: [],
   itemDonations: [],
   volunteers: [],
   isLoading: false,
 
-  // Function to fetch donations for a specific event
+  // Method to update pending contributions for a specific event
+  updatePendingContributions: (eventId: string) => {
+    useEventsStore.setState((state) => ({
+      events: state.events.map((event: any) =>
+        event._id === eventId && event.pendingContributions > 0
+          ? {
+              ...event,
+              pendingContributions: Math.max(event.pendingContributions - 1, 0),
+            }
+          : event
+      ),
+    }));
+
+    // Decrease pending contributions in useDashStore
+    useDashStore.setState((state) => ({
+      pendingContributions: Math.max(state.pendingContributions - 1, 0),
+    }));
+  },
+
   getDonations: async (eventId) => {
-    set({ isLoading: true});
+    set({ isLoading: true });
     try {
-      const response = await axiosInstance.get(`/contributions/donations/${eventId}`);
+      const response = await axiosInstance.get(
+        `/contributions/donations/${eventId}`
+      );
 
       set({ donations: response.data.donations });
-    } catch (error) {
-        console.log(error);
-        toast.error("Failed to load contributions data");
+    } catch (error : any) {
+      console.log(error);
+      toast.error("Failed to load contributions data");
     }
     set({ isLoading: false });
   },
 
-  // Function to fetch item donations for a specific event
   getItemDonations: async (eventId) => {
-    set({ isLoading: true});
+    set({ isLoading: true });
     try {
-      const response = await axiosInstance.get(`/contributions/item-donations/${eventId}`);
+      const response = await axiosInstance.get(
+        `/contributions/item-donations/${eventId}`
+      );
 
-      set({ itemDonations: response.data.itemDonations});
-    } catch (error) {
-        console.log(error);
-        toast.error("Failed to load contributions data");
+      set({ itemDonations: response.data.itemDonations });
+    } catch (error : any) {
+      console.log(error);
+      toast.error("Failed to load contributions data");
     }
     set({ isLoading: false });
   },
 
   getVolunteers: async (eventId) => {
-    set({ isLoading: true});
+    set({ isLoading: true });
     try {
-      const response = await axiosInstance.get(`/contributions/volunteers/${eventId}`);
+      const response = await axiosInstance.get(
+        `/contributions/volunteers/${eventId}`
+      );
 
       set({ volunteers: response.data.volunteers });
-    } catch (error) {
-        console.log(error);
-        toast.error("Failed to load contributions data");
+    } catch (error : any) {
+      console.log(error);
+      toast.error("Failed to load contributions data");
     }
     set({ isLoading: false });
   },
-  confirmDonation: async (donationId) => {
+
+  confirmDonation: async (donationId, eventId) => {
     try {
       await axiosInstance.put(`/donations/confirm/${donationId}`);
+      const donation = get().donations.find((d) => d._id === donationId);
+
+      if (donation?.status === "pending") {
+        get().updatePendingContributions(eventId);
+      }
       set((state) => ({
         donations: state.donations.map((donation) =>
-          donation._id === donationId ? { ...donation, confirmed: true } : donation
+          donation._id === donationId
+            ? { ...donation, status: "confirmed" }
+            : donation
         ),
       }));
+
       toast.success("Donation confirmed successfully");
-    } catch (error) {
+    } catch (error : any) {
       console.log(error);
-      toast.error("Failed to confirm donation");
+      toast.error(error.response.data.message);
     }
   },
+  cancelDonation: async (donationId, eventId) => {
+    try {
+      await axiosInstance.put(`/donations/cancel/${donationId}`);
+      const donation = get().donations.find((d) => d._id === donationId);
 
-  confirmItemDonation: async (itemDonationId) => {
+      if (donation?.status === "pending") {
+        get().updatePendingContributions(eventId);
+      }
+      set((state) => ({
+        donations: state.donations.map((donation) =>
+          donation._id === donationId
+            ? { ...donation, status: "canceled" }
+            : donation
+        ),
+      }));
+
+      toast.success("Donation canceled successfully");
+    } catch (error : any) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    }
+  },
+  confirmItemDonation: async (itemDonationId, eventId) => {
     try {
       await axiosInstance.put(`/itemDonations/confirm/${itemDonationId}`);
+      const itemDonation = get().itemDonations.find(
+        (d) => d._id === itemDonationId
+      );
+
+      if (itemDonation?.status === "pending") {
+        get().updatePendingContributions(eventId);
+      }
       set((state) => ({
         itemDonations: state.itemDonations.map((itemDonation) =>
-          itemDonation._id === itemDonationId ? { ...itemDonation, confirmed: true } : itemDonation
+          itemDonation._id === itemDonationId
+            ? { ...itemDonation, status: "confirmed" }
+            : itemDonation
         ),
       }));
+
       toast.success("Item donation confirmed successfully");
-    } catch (error) {
+    } catch (error : any) {
       console.log(error);
-      toast.error("Failed to confirm item donation");
+      toast.error(error.response.data.message);
     }
   },
-
-  confirmVolunteer: async (volunteerId) => {
+  cancelItemDonation: async (itemDonationId, eventId) => {
     try {
-      await axiosInstance.put(`/volunteers/confirm/${volunteerId}`);
+      await axiosInstance.put(`/itemDonations/cancel/${itemDonationId}`);
+      const itemDonation = get().itemDonations.find(
+        (d) => d._id === itemDonationId
+      );
+
+      if (itemDonation?.status === "pending") {
+        get().updatePendingContributions(eventId);
+      }
       set((state) => ({
-        volunteers: state.volunteers.map((volunteer) =>
-          volunteer._id === volunteerId ? { ...volunteer, confirmed: true } : volunteer
+        itemDonations: state.itemDonations.map((itemDonation) =>
+          itemDonation._id === itemDonationId
+            ? { ...itemDonation, status: "canceled" }
+            : itemDonation
         ),
       }));
-      toast.success("Volunteer confirmed successfully");
-    } catch (error) {
+
+      toast.success("Item donation canceled successfully");
+    } catch (error : any) {
       console.log(error);
-      toast.error("Failed to confirm volunteer");
+      toast.error(error.response.data.message);
+    }
+  },
+  confirmVolunteer: async (volunteerId, eventId) => {
+    try {
+      await axiosInstance.put(`/volunteers/confirm/${volunteerId}`);
+      const volunteer = get().volunteers.find((d) => d._id === volunteerId);
+
+      if (volunteer?.status === "pending") {
+        get().updatePendingContributions(eventId);
+      }
+      set((state) => ({
+        volunteers: state.volunteers.map((volunteer) =>
+          volunteer._id === volunteerId
+            ? { ...volunteer, status: "confirmed" }
+            : volunteer
+        ),
+      }));
+
+      toast.success("Volunteer confirmed successfully");
+    } catch (error : any) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    }
+  },
+  cancelVolunteer: async (volunteerId, eventId) => {
+    try {
+      await axiosInstance.put(`/volunteers/cancel/${volunteerId}`);
+      const volunteer = get().volunteers.find((d) => d._id === volunteerId);
+
+      if (volunteer?.status === "pending") {
+        get().updatePendingContributions(eventId);
+      }
+      set((state) => ({
+        volunteers: state.volunteers.map((volunteer) =>
+          volunteer._id === volunteerId
+            ? { ...volunteer, status: "canceled" }
+            : volunteer
+        ),
+      }));
+
+      toast.success("Volunteer canceled successfully");
+    } catch (error : any) {
+      console.log(error);
+      toast.error(error.response.data.message);
     }
   },
 }));

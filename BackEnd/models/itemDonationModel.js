@@ -21,7 +21,7 @@ const itemDonationSchema = new mongoose.Schema(
         quantityDonated: {
           type: Number,
           required: true,
-          min: 1, // Ensure the quantity is at least 1
+          min: 1,
         },
       },
     ],
@@ -45,14 +45,15 @@ const itemDonationSchema = new mongoose.Schema(
       trim: true,
       required: true,
     },
-    confirmed: {
-      type: Boolean,
-      default: false,
+    status: {
+      type: String,
+      enum: ["confirmed", "pending", "canceled"],
+      default: "pending",
     },
   },
   { timestamps: true }
 );
 
-const ItemDonation = mongoose.model("ItemDonation",itemDonationSchema);
+const ItemDonation = mongoose.model("ItemDonation", itemDonationSchema);
 
 export default ItemDonation;

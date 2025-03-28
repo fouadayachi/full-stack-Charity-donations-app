@@ -1,22 +1,22 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, { useEffect, useState } from "react";
 import { Button } from "@heroui/button";
 import { parseAbsoluteToLocal } from "@internationalized/date";
+import React, { useEffect, useState } from "react";
 
-import {
-  X,
-  Calendar as CalendarIcon,
-  MapPin as MapPinIcon,
-  Tag as TagIcon,
-  DollarSign as DollarSignIcon,
-  Users as UsersIcon,
-  Package as PackageIcon,
-  Plus as PlusIcon,
-  Trash as TrashIcon,
-  Clock,
-} from "lucide-react";
 import { DatePicker } from "@heroui/date-picker";
 import { NumberInput } from "@heroui/number-input";
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  DollarSign as DollarSignIcon,
+  MapPin as MapPinIcon,
+  Package as PackageIcon,
+  Plus as PlusIcon,
+  Tag as TagIcon,
+  Trash as TrashIcon,
+  Users as UsersIcon,
+  X,
+} from "lucide-react";
 
 export interface Event {
   _id?: string;
@@ -132,7 +132,7 @@ export const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
 
   const handleItemChange = (
     index: number,
-    field: "name" | "quantityNeeded",
+    field: "name" | "quantityNeeded" | "quantityDonated", // Added "quantityDonated"
     value: string | number
   ) => {
     if (formData.targetItems) {
@@ -140,8 +140,10 @@ export const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
 
       if (field === "name") {
         updatedItems[index].name = value as string;
-      } else {
+      } else if (field === "quantityNeeded") {
         updatedItems[index].quantityNeeded = value as number;
+      } else {
+        updatedItems[index].quantityDonated = value as number; // Handle "quantityDonated"
       }
       setFormData({
         ...formData,
@@ -635,6 +637,12 @@ export const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
                           className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           scope="col"
                         >
+                          Quantity Donated
+                        </th>
+                        <th
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          scope="col"
+                        >
                           Actions
                         </th>
                       </tr>
@@ -657,13 +665,29 @@ export const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
                             <input
                               className="block w-full border border-gray-300 rounded-md py-1 px-2 shadow-sm focus:outline-none focus:ring-[#3182CE] focus:border-[#3182CE] text-sm"
                               min="1"
-                              placeholder="Quantity"
+                              placeholder="Quantity Needed"
                               type="number"
                               value={item.quantityNeeded || ""}
                               onChange={(e) =>
                                 handleItemChange(
                                   index,
                                   "quantityNeeded",
+                                  parseInt(e.target.value || "0", 10)
+                                )
+                              }
+                            />
+                          </td>
+                          <td className="px-4 py-2">
+                            <input
+                              className="block w-full border border-gray-300 rounded-md py-1 px-2 shadow-sm focus:outline-none focus:ring-[#3182CE] focus:border-[#3182CE] text-sm"
+                              min="0"
+                              placeholder="Quantity Donated"
+                              type="number"
+                              value={item.quantityDonated || 0} // Default value set to 0
+                              onChange={(e) =>
+                                handleItemChange(
+                                  index,
+                                  "quantityDonated",
                                   parseInt(e.target.value || "0", 10)
                                 )
                               }

@@ -70,3 +70,17 @@ export const deleteMessage = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getUnreadMessagesCount = async (req, res) => {
+  try {
+    const unreadMessagesCount = await Messages.countDocuments({ isRead: false });
+
+    res.status(200).json({
+      message: "Unread messages count fetched successfully",
+      data: unreadMessagesCount,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

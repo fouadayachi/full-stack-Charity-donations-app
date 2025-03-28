@@ -30,9 +30,10 @@ const volunteerSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    confirmed: {
-      type: Boolean,
-      default: false,
+    status: {
+      type: String,
+      enum: ["confirmed", "pending", "canceled"],
+      default: "pending",
     },
   },
   { timestamps: true }

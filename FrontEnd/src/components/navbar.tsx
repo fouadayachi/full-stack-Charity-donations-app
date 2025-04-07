@@ -27,7 +27,7 @@ import { useNavigate } from "react-router-dom";
 
 export const Navbar = () => {
   const navigate = useNavigate();
-  const { authenticated, logout } = useAuthStore();
+  const { authenticated, user, logout } = useAuthStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -78,7 +78,12 @@ export const Navbar = () => {
           {authenticated ? (
             <Dropdown>
               <DropdownTrigger className=" cursor-pointer">
-                <Avatar isBordered color="primary" name="Fouad" size="sm" />
+                <Avatar
+                  isBordered
+                  color="primary"
+                  name={user.firstName}
+                  size="sm"
+                />
               </DropdownTrigger>
               <DropdownMenu aria-label="Static Actions">
                 <DropdownItem key={"myImpacts"} startContent={<Star />}>
@@ -119,7 +124,12 @@ export const Navbar = () => {
         {authenticated ? (
           <Dropdown>
             <DropdownTrigger className=" cursor-pointer">
-              <Avatar isBordered color="primary" name="Fouad" size="sm" />
+              <Avatar
+                isBordered
+                color="primary"
+                name={user.firstName}
+                size="sm"
+              />
             </DropdownTrigger>
             <DropdownMenu aria-label="Static Actions">
               <DropdownItem key={"myImpacts"} startContent={<Star />}>

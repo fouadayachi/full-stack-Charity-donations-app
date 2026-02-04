@@ -1,0 +1,245 @@
+import { toast } from "react-toastify";
+import { create } from "zustand";
+import axiosInstance from "../config/axios";
+import useAuthStore from "./useAuthStore";
+import useDashStore from "./useDashStore"; // Import useDashStore
+
+interface EventsStore {
+  events: any;
+  event: any;
+  isLoading: boolean;
+  isLoadingMore: boolean;
+  isLoadingEvent: boolean;
+  isAddingEvent: boolean;
+  isUpdating: boolean;
+  totalEvents: number;
+  getInitialEvents: (data: any) => Promise<void>;
+  getEvent: (data: any) => Promise<void>;
+  getFilterEvents: (data: any) => Promise<void>;
+  getMoreEvents: (data: any) => Promise<void>;
+  deleteEvent: (eventId: string) => Promise<void>;
+  saveEvent: (data: any) => Promise<void>;
+  unsaveEvent: (data: any) => Promise<void>;
+  addEvent: (data: any) => Promise<void>;
+  updateEvent: (eventId: string, data: any) => Promise<void>;
+}
+
+const useEventsStore = create<EventsStore>((set, get) => ({
+  isLoading: false,
+  isLoadingMore: false,
+  isLoadingEvent: false,
+  isAddingEvent: false,
+  isUpdating: false,
+  totalEvents: 0,
+  events: [],
+  event: null,
+  getInitialEvents: async (params) => {
+    set({ isLoading: true });
+    try {
+      const response = await axiosInstance.get("/admin/events", { params });
+
+      set({
+        events: response.data.events.map((event: any) => ({
+          ...event,
+          pendingContributions: event.pendingContributions || 0, // Ensure the property exists
+        })),
+      });
+      set({ totalEvents: response.data.total });
+    } catch (error: any) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    }
+    set({ isLoading: false });
+  },
+  getEvent: async (eventId) => {
+    set({ isLoadingEvent: true });
+    try {
+      const response = await axiosInstance.get("/admin/event/" + eventId);
+
+      set({ event: response.data.event });
+    } catch (error : any) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    }
+    set({ isLoadingEvent: false });
+  },
+  getFilterEvents: async (params) => {
+    set({ isLoading: true });
+    try {
+      const response = await axiosInstance.get("/admin/events/filter", {
+        params,
+      });
+
+      set({ events: response.data.events });
+      set({ totalEvents: response.data.total });
+    } catch (error : any) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    }
+    set({ isLoading: false });
+  },
+  getMoreEvents: async (params) => {
+    set({ isLoadingMore: true });
+    try {
+      const response = await axiosInstance.get("/admin/events/filter", {
+        params,
+      });
+
+      set({ events: [...get().events, ...response.data.events] });
+    } catch (error : any) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    }
+    set({ isLoadingMore: false });
+  },
+  addEvent: async (data) => {
+    set({ isAddingEvent: true });
+    try {
+      const response = await axiosInstance.post("/admin/postEvent", data, {
+        headers: {
+          "Content-Type": "multipart/form-data", // Set the correct content type
+        },
+      });
+
+      set((state) => ({
+        events: [response.data.event, ...state.events],
+        totalEvents: state.totalEvents + 1,
+      }));
+
+      toast.success("Event added successfully");
+    } catch (error : any) {
+      console.error("Add event error:", error);
+      toast.error(error.response?.data?.message || "Failed to add event");
+    } finally {
+      set({ isAddingEvent: false });
+    }
+  },
+  updateEvent: async (eventId, data) => {
+  set({ isUpdating: true });
+  try {
+    const formData = new FormData();
+    
+    // Append all regular fields
+    Object.keys(data).forEach(key => {
+      if (key !== 'newMainImage' && key !== 'newImages' && key !== 'targetItems') {
+        formData.append(key, data[key]);
+      }
+    });
+
+    // Handle targetItems specially
+    if (data.targetItems) {
+      // Create a Blob from the JSON string
+      const targetItemsBlob = new Blob(
+        [JSON.stringify(data.targetItems)], 
+        { type: 'application/json' }
+      );
+      formData.append('targetItems', targetItemsBlob);
+    }
+
+    // Append files
+    if (data.newMainImage) {
+      formData.append('mainImage', data.newMainImage);
+    }
+    if (data.newImages) {
+      data.newImages.forEach((file: File) => {
+        formData.append('images', file);
+      });
+    }
+
+    const response = await axiosInstance.put(
+      `/admin/updateEvent/${eventId}`, 
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    // Update store
+    set((state) => ({
+      events: state.events.map((event: any) =>
+        event._id === eventId ? response.data.event : event
+      ),
+    }));
+
+    toast.success("Event updated successfully");
+  } catch (error: any) {
+    console.error("Update error:", error);
+    toast.error(error.response?.data?.message || "Failed to update event");
+  } finally {
+    set({ isUpdating: false });
+  }
+},
+
+  deleteEvent: async (eventId) => {
+    try {
+      const eventToDelete = get().events.find((event: any) => event._id === eventId);
+      const pendingContributionsToDeduct = eventToDelete?.pendingContributions || 0;
+
+      await axiosInstance.delete(`/admin/deleteEvent/${eventId}`);
+
+      set((state) => ({
+        events: state.events.filter((event: any) => event._id !== eventId),
+        totalEvents: state.totalEvents - 1,
+      }));
+
+      if (get().event?._id === eventId) {
+        set({ event: null });
+      }
+
+      // Update pendingContributions in useDashStore
+      useDashStore.setState((state) => ({
+        pendingContributions: Math.max(state.pendingContributions - pendingContributionsToDeduct, 0),
+      }));
+
+      toast.success("Event deleted successfully");
+    } catch (error: any) {
+      console.error("Delete error:", error);
+      toast.error(error.response?.data?.message || "Failed to delete event");
+    }
+  },
+  saveEvent: async (eventId) => {
+    try {
+      const response = await axiosInstance.post(
+        "/admin/events/saveEvent",
+        eventId
+      );
+      const { user } = useAuthStore.getState();
+      const { savedEvents } = user;
+
+      savedEvents.push(eventId.eventId);
+
+      useAuthStore.setState({ user: { ...user, savedEvents } });
+
+      console.log(response.data);
+    } catch (error : any) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    }
+  },
+  unsaveEvent: async (eventId) => {
+    try {
+      const response = await axiosInstance.post(
+        "/admin/events/unsaveEvent",
+        eventId
+      );
+
+      const { user } = useAuthStore.getState();
+      const { savedEvents } = user;
+
+      const newSavedEvents = savedEvents.filter(
+        (id: any) => id.toString() !== eventId.eventId
+      );
+
+      useAuthStore.setState({ user: { ...user, savedEvents: newSavedEvents } });
+
+      console.log(response.data);
+    } catch (error : any) {
+      console.log(error);
+      toast.error(error.response.data.message);
+    }
+  },
+}));
+
+export default useEventsStore;

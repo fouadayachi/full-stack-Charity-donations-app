@@ -18,7 +18,6 @@ import { AddEventPage } from "./components/Admin/Events/AddEventPage";
 import { AddShowcasePage } from "./components/Admin/ShowCase/AddShowcasePage";
 import { MessagesPage } from "./components/Admin/Messages/MessagesPage";
 import { SettingsPage } from "./pages/settings";
-import AdminAuth from "./pages/adminAuth";
 import IndexPage from "./pages";
 
 function App() {

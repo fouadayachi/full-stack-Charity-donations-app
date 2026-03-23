@@ -123,30 +123,8 @@ export function DonationSection({
                 src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg"
               />
             </Button>
-            <Button
-              className="p-3  bg-white"
-              color={payment === "baridi" ? "primary" : "default"}
-              variant="bordered"
-              onPress={() => setPayment("baridi")}
-            >
-              <img
-                alt="Baridi Mob"
-                className="h-6 scale-[2.2]"
-                src="/images/baridi.png"
-              />
-            </Button>
-            <Button
-              className="p-3  bg-white"
-              color={payment === "bank" ? "primary" : "default"}
-              variant="bordered"
-              onPress={() => setPayment("bank")}
-            >
-              <img
-                alt="Bank"
-                className="h-6 scale-150"
-                src="/images/cb.svg"
-              />
-            </Button>
+            
+            
             <Button
               className="p-3  bg-white"
               color={payment === "cash" ? "primary" : "default"}

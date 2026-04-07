@@ -1,6 +1,5 @@
 import React from "react";
-import "@heroui/react/styles.css"; // or
-import "@heroui/theme/styles.css";
+
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 

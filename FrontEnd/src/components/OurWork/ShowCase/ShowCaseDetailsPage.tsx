@@ -30,7 +30,7 @@ function ShowCaseDetailsPage() {
         <NavbarContent className=" w-full" justify="center">
           <NavbarBrand className="gap-3 max-w-fit">
             <Link href="/">
-              <img alt="logo" className="w-[180px] h-[50px]" src="/logo.png" />
+              <img alt="logo" className="w-[60px] h-[40px]" src="/logo1.png" />
             </Link>
           </NavbarBrand>
         </NavbarContent>

@@ -45,7 +45,7 @@ export const Navbar = () => {
         />
         <NavbarBrand className="gap-3 max-w-fit scale-150">
           <Link href="/">
-            <img alt="logo" className="w-[100px] h-[40px]" src="/newLogo.png" />
+            <img alt="logo" className="w-[60px] h-[40px]" src="/logo1.png" />
           </Link>
         </NavbarBrand>
       </NavbarContent>

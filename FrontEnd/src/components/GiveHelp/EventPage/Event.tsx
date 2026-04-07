@@ -1,22 +1,22 @@
+import useAuthStore from "@/store/useAuthStore";
+import useEventsStore from "@/store/useEventsStore";
 import { Link } from "@heroui/link";
 import {
-  Navbar as HeroUINavbar,
-  NavbarBrand,
-  NavbarContent,
+    Navbar as HeroUINavbar,
+    NavbarBrand,
+    NavbarContent,
 } from "@heroui/navbar";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { CallToAction } from "./CallToAction";
 import { DonateItemsSection } from "./DonateItemsSection";
 import { DonationSection } from "./DonationSection";
 import { EventDetails } from "./EventDetails";
 import { EventGallery } from "./EventGallery";
 import { EventHeader } from "./EventHeader";
-import { VolunteerSection } from "./VolunteerSection";
-import { useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
-import useAuthStore from "@/store/useAuthStore";
-import { FloatingBanner } from "./FloatingBanner";
 import { EventSkeleton } from "./EventSkeleton";
-import useEventsStore from "@/store/useEventsStore";
+import { FloatingBanner } from "./FloatingBanner";
+import { VolunteerSection } from "./VolunteerSection";
 export interface Event {
   _id?: string;
   title: string;
@@ -136,7 +136,7 @@ function EventDetailsPage({ event, isLoadingEvent }: EventDetailsPageProps) {
         <NavbarContent className=" w-full" justify="center">
           <NavbarBrand className="gap-3 max-w-fit scale-150">
           <Link href="/">
-            <img alt="logo" className="w-[100px] h-[40px]" src="/newLogo.png" />
+            <img alt="logo" className="w-[60px] h-[40px]" src="/logo1.png" />
           </Link>
         </NavbarBrand>
         </NavbarContent>

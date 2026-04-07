@@ -3,9 +3,9 @@ import { ProfileSection } from '@/components/UserSettings/ProfileSection';
 import { SecuritySection } from '@/components/UserSettings/SecuritySection';
 import { Link } from '@heroui/link';
 import {
-    Navbar as HeroUINavbar,
-    NavbarBrand,
-    NavbarContent,
+  Navbar as HeroUINavbar,
+  NavbarBrand,
+  NavbarContent,
 } from "@heroui/navbar";
 import { useState } from 'react';
 export function SettingsPage() {
@@ -18,7 +18,7 @@ export function SettingsPage() {
         <NavbarContent className=" w-full" justify="center">
           <NavbarBrand className="gap-3 max-w-fit scale-150">
           <Link href="/">
-            <img alt="logo" className="w-[100px] h-[40px]" src="/newLogo.png" />
+            <img alt="logo" className="w-[60px] h-[40px]" src="/logo1.png" />
           </Link>
         </NavbarBrand>
         </NavbarContent>

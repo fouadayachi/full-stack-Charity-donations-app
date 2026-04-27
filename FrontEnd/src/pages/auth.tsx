@@ -1,12 +1,12 @@
 import Forms from "@/components/forms";
 import { siteConfig } from "@/config/site";
 import useAuthStore from "@/store/useAuthStore";
-import { Button } from "@/components/ui/button"; // Updated
-import { Input } from "@/components/ui/input";   // Updated
-import { Label } from "@/components/ui/label";   // Updated
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardBody } from "@heroui/card"; 
 import { Tab, Tabs } from "@heroui/tabs";
-import { ArrowLeft, Mail } from "lucide-react"; // Added for better UI
+import { ArrowLeft, Mail } from "lucide-react";
 import { useState } from "react";
 
 
@@ -32,9 +32,10 @@ const Auth = () => {
 
   const { signUpFormControl, signInFormControl } = siteConfig;
   const { signup, isSigningUp, login, isLoggingIn } = useAuthStore();
+  
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [changePasswordEmail, setChangePasswordEmail] = useState("");
-  const [forgotPasswordStep, setForgotPasswordStep] = useState(1);
+  // REMOVED: const [forgotPasswordStep, setForgotPasswordStep] = useState(1);
 
   const handleTabsChange = (key: any) => {
     setSelected(key as string);
@@ -46,7 +47,7 @@ const Auth = () => {
 
   function handleBackToLogin() {
     setIsForgotPassword(false);
-    setForgotPasswordStep(1);
+    // REMOVED: setForgotPasswordStep(1);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -64,7 +65,6 @@ const Auth = () => {
         <Card className="shadow-xl border-none">
           <CardBody className="p-8">
             {isForgotPassword ? (
-              /* --- FORGOT PASSWORD FLOW (REFRACTORED TO SHADCN) --- */
               <div className="flex flex-col gap-6">
                 <div className="text-center">
                   <h1 className="text-2xl font-bold text-gray-900">Reset Password</h1>
@@ -90,7 +90,10 @@ const Auth = () => {
 
                 <Button 
                   className="w-full bg-[#3182CE] hover:bg-blue-600"
-                  onClick={() => {/* logic to trigger email */}}
+                  onClick={() => {
+                    console.log("Reset email sent to:", changePasswordEmail);
+                    // Add your actual password reset logic here
+                  }}
                 >
                   Send Reset Link
                 </Button>
@@ -104,7 +107,6 @@ const Auth = () => {
                 </button>
               </div>
             ) : (
-              /* --- LOGIN / SIGNUP TABS --- */
               <Tabs
                 fullWidth
                 aria-label="Auth options"
@@ -114,46 +116,50 @@ const Auth = () => {
                 variant="underlined"
                 onSelectionChange={handleTabsChange}
               >
-                <Tab key="login" className="flex flex-col gap-4" title="Login">
-                  <div className="text-center py-2">
-                    <h1 className="text-2xl font-semibold">Welcome Back</h1>
-                    <p className="text-sm text-gray-500 mt-1">Please enter your details</p>
-                  </div>
-                  
-                  <Forms
-                    buttonText={"Login"}
-                    formControles={signInFormControl}
-                    formData={formData}
-                    handleSubmit={handleSubmit}
-                    setFormData={setFormData}
-                    state={isLoggingIn}
-                  />
+                <Tab key="login" title="Login">
+                   <div className="flex flex-col gap-4 pt-4">
+                    <div className="text-center py-2">
+                        <h1 className="text-2xl font-semibold">Welcome Back</h1>
+                        <p className="text-sm text-gray-500 mt-1">Please enter your details</p>
+                    </div>
+                    
+                    <Forms
+                        buttonText={"Login"}
+                        formControles={signInFormControl}
+                        formData={formData}
+                        handleSubmit={handleSubmit}
+                        setFormData={setFormData}
+                        state={isLoggingIn}
+                    />
 
-                  <div className="text-center">
-                    <button
-                      className="text-sm text-blue-500 hover:underline"
-                      type="button"
-                      onClick={handleForgotPasswordClick}
-                    >
-                      Forgot Password?
-                    </button>
+                    <div className="text-center mt-2">
+                        <button
+                        className="text-sm text-blue-500 hover:underline"
+                        type="button"
+                        onClick={handleForgotPasswordClick}
+                        >
+                        Forgot Password?
+                        </button>
+                    </div>
                   </div>
                 </Tab>
 
-                <Tab key="signup" className="flex flex-col gap-4" title="Sign Up">
-                  <div className="text-center py-2">
-                    <h1 className="text-2xl font-semibold">Create Account</h1>
-                    <p className="text-sm text-gray-500 mt-1">Join us today</p>
+                <Tab key="signup" title="Sign Up">
+                  <div className="flex flex-col gap-4 pt-4">
+                    <div className="text-center py-2">
+                        <h1 className="text-2xl font-semibold">Create Account</h1>
+                        <p className="text-sm text-gray-500 mt-1">Join us today</p>
+                    </div>
+                    
+                    <Forms
+                        buttonText={"Sign Up"}
+                        formControles={signUpFormControl}
+                        formData={formData}
+                        handleSubmit={handleSubmit}
+                        setFormData={setFormData}
+                        state={isSigningUp}
+                    />
                   </div>
-                  
-                  <Forms
-                    buttonText={"Sign Up"}
-                    formControles={signUpFormControl}
-                    formData={formData}
-                    handleSubmit={handleSubmit}
-                    setFormData={setFormData}
-                    state={isSigningUp}
-                  />
                 </Tab>
               </Tabs>
             )}

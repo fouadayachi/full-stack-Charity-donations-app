@@ -1,18 +1,14 @@
 import Forms from "@/components/forms";
 import { siteConfig } from "@/config/site";
 import useAuthStore from "@/store/useAuthStore";
-import { Button } from "@heroui/button";
-import { Card, CardBody } from "@heroui/card";
-import { Input } from "@heroui/input";
-import { Link } from "@heroui/link";
-import {
-  Navbar as HeroUINavbar,
-  NavbarBrand,
-  NavbarContent,
-} from "@heroui/navbar";
+import { Button } from "@/components/ui/button"; // Updated
+import { Input } from "@/components/ui/input";   // Updated
+import { Label } from "@/components/ui/label";   // Updated
+import { Card, CardBody } from "@heroui/card"; 
 import { Tab, Tabs } from "@heroui/tabs";
-import { Eye, EyeClosed } from "lucide-react";
+import { ArrowLeft, Mail } from "lucide-react"; // Added for better UI
 import { useState } from "react";
+
 
 interface FormData {
   firstName: string;
@@ -22,6 +18,7 @@ interface FormData {
   phone: string;
   address: string;
 }
+
 const Auth = () => {
   const [selected, setSelected] = useState<string>("login");
   const [formData, setFormData] = useState<FormData>({
@@ -32,178 +29,98 @@ const Auth = () => {
     phone: "",
     address: "",
   });
+
   const { signUpFormControl, signInFormControl } = siteConfig;
   const { signup, isSigningUp, login, isLoggingIn } = useAuthStore();
   const [isForgotPassword, setIsForgotPassword] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-  const toggleVisibility = () => setIsVisible(!isVisible);
   const [changePasswordEmail, setChangePasswordEmail] = useState("");
   const [forgotPasswordStep, setForgotPasswordStep] = useState(1);
 
-  const handleTabsChange = (key: string) => {
-    setSelected(key);
-    setFormData({
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-      phone: "",
-      address: "",
-    });
+  const handleTabsChange = (key: any) => {
+    setSelected(key as string);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (selected === "signup") {
-      signup(formData);
-    } else {
-      login(formData);
-    }
-  };
-
-  const handleForgotPasswordClick = () => {
+  function handleForgotPasswordClick() {
     setIsForgotPassword(true);
-  };
+  }
 
-  const handleBackToLogin = () => {
-    setIsForgotPassword(false);
-  };
-
-  const handleEmailSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // Add logic to send reset email
-    setForgotPasswordStep(2);
-  };
-
-  const handleOtpSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // Add logic to verify OTP
-    setForgotPasswordStep(3);
-  };
-
-  const handlePasswordChangeSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // Add logic to change the password
+  function handleBackToLogin() {
     setIsForgotPassword(false);
     setForgotPasswordStep(1);
-  };
+  }
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (selected === "login") {
+      await login(formData);
+    } else {
+      await signup(formData);
+    }
+  }
 
   return (
-    <div className="relative flex flex-col h-screen">
-      <HeroUINavbar isBordered maxWidth="xl" position="sticky">
-        <NavbarContent className=" w-full" justify="center">
-          <NavbarBrand className="gap-3 max-w-fit">
-            <Link href="/">
-              <img alt="logo" className="w-[60px] h-[40px]" src="/logo1.png" />
-            </Link>
-          </NavbarBrand>
-        </NavbarContent>
-      </HeroUINavbar>
-      <div className="flex justify-center items-center p-6">
-        <Card className="w-[550px] max-w-full  p-2">
-          <CardBody className="overflow-hidden">
+    <div className="flex flex-col min-h-screen items-center justify-center bg-gray-50 p-4">
+      <div className="w-full max-w-md">
+        <Card className="shadow-xl border-none">
+          <CardBody className="p-8">
             {isForgotPassword ? (
-              <div className="flex flex-col gap-3">
+              /* --- FORGOT PASSWORD FLOW (REFRACTORED TO SHADCN) --- */
+              <div className="flex flex-col gap-6">
                 <div className="text-center">
-                  <h1 className="text-2xl font-semibold">Forgot Password</h1>
+                  <h1 className="text-2xl font-bold text-gray-900">Reset Password</h1>
                   <p className="text-sm text-gray-500 mt-2">
-                    {forgotPasswordStep === 1 &&
-                      "Enter your email to reset your password"}
-                    {forgotPasswordStep === 2 &&
-                      "Enter the OTP sent to your email"}
-                    {forgotPasswordStep === 3 && "Enter your new password"}
+                    Enter your email address to receive a reset link
                   </p>
                 </div>
-                {forgotPasswordStep === 1 && (
-                  <form
-                    className="flex flex-col gap-5"
-                    onSubmit={handleEmailSubmit}
-                  >
+
+                <div className="space-y-2">
+                  <Label htmlFor="reset-email">Email Address</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <Input
-                      isRequired
-                      label={"Email"}
-                      labelPlacement="outside"
-                      placeholder={"Enter your email"}
+                      className="pl-10"
+                      id="reset-email"
+                      placeholder="name@example.com"
+                      type="email"
                       value={changePasswordEmail}
                       onChange={(e) => setChangePasswordEmail(e.target.value)}
                     />
-                    <Button color="primary" type="submit">
-                      Submit
-                    </Button>
-                  </form>
-                )}
-                {forgotPasswordStep === 2 && (
-                  <form
-                    className="flex flex-col gap-5"
-                    onSubmit={handleOtpSubmit}
-                  >
-                    <Input
-                      isRequired
-                      label={"OTP"}
-                      labelPlacement="outside"
-                      placeholder={"Enter the OTP"}
-                    />
-                    <Button color="primary" type="submit">
-                      Submit
-                    </Button>
-                  </form>
-                )}
-                {forgotPasswordStep === 3 && (
-                  <form
-                    className="flex flex-col gap-5"
-                    onSubmit={handlePasswordChangeSubmit}
-                  >
-                    <Input
-                      isRequired
-                      endContent={
-                        <button
-                          className="text-gray-500"
-                          type="button"
-                          onClick={toggleVisibility}
-                        >
-                          {isVisible ? <Eye /> : <EyeClosed />}
-                        </button>
-                      }
-                      label={"New Password"}
-                      labelPlacement="outside"
-                      placeholder={"Enter your new password"}
-                      type={isVisible ? "text" : "password"}
-                    />
-                    <Button color="primary" type="submit">
-                      Submit
-                    </Button>
-                  </form>
-                )}
-                <div className="text-center mt-2">
-                  <button
-                    className="text-sm text-blue-500 hover:underline"
-                    onClick={handleBackToLogin}
-                  >
-                    Back to Login
-                  </button>
+                  </div>
                 </div>
+
+                <Button 
+                  className="w-full bg-[#3182CE] hover:bg-blue-600"
+                  onClick={() => {/* logic to trigger email */}}
+                >
+                  Send Reset Link
+                </Button>
+
+                <button
+                  className="flex items-center justify-center text-sm text-gray-600 hover:text-[#3182CE] transition-colors"
+                  onClick={handleBackToLogin}
+                >
+                  <ArrowLeft className="mr-2" size={16} />
+                  Back to Login
+                </button>
               </div>
             ) : (
+              /* --- LOGIN / SIGNUP TABS --- */
               <Tabs
                 fullWidth
-                aria-label="tabs form"
+                aria-label="Auth options"
                 color="primary"
-                radius="full"
                 selectedKey={selected}
-                size="md"
-                onSelectionChange={(key) => handleTabsChange(key.toString())}
+                size="lg"
+                variant="underlined"
+                onSelectionChange={handleTabsChange}
               >
-                <Tab key="login" className="flex flex-col gap-3" title="Login">
-                  <div className="text-center">
-                    <h1 className="text-2xl font-semibold">
-                      Sign in to your account
-                    </h1>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Enter your email and password to access your account
-                    </p>
+                <Tab key="login" className="flex flex-col gap-4" title="Login">
+                  <div className="text-center py-2">
+                    <h1 className="text-2xl font-semibold">Welcome Back</h1>
+                    <p className="text-sm text-gray-500 mt-1">Please enter your details</p>
                   </div>
+                  
                   <Forms
-                    key={"login"}
                     buttonText={"Login"}
                     formControles={signInFormControl}
                     formData={formData}
@@ -211,30 +128,25 @@ const Auth = () => {
                     setFormData={setFormData}
                     state={isLoggingIn}
                   />
-                  <div className="text-center mt-2">
-                    <Link
-                      className="text-sm text-blue-500 hover:underline cursor-pointer"
-                      onPress={handleForgotPasswordClick}
+
+                  <div className="text-center">
+                    <button
+                      className="text-sm text-blue-500 hover:underline"
+                      type="button"
+                      onClick={handleForgotPasswordClick}
                     >
                       Forgot Password?
-                    </Link>
+                    </button>
                   </div>
                 </Tab>
-                <Tab
-                  key="signup"
-                  className="flex flex-col gap-3"
-                  title="Sign Up"
-                >
-                  <div className="text-center">
-                    <h1 className="text-2xl font-semibold">
-                      Create new account
-                    </h1>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Enter your details to get started
-                    </p>
+
+                <Tab key="signup" className="flex flex-col gap-4" title="Sign Up">
+                  <div className="text-center py-2">
+                    <h1 className="text-2xl font-semibold">Create Account</h1>
+                    <p className="text-sm text-gray-500 mt-1">Join us today</p>
                   </div>
+                  
                   <Forms
-                    key={"signup"}
                     buttonText={"Sign Up"}
                     formControles={signUpFormControl}
                     formData={formData}

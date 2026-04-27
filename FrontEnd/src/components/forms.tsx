@@ -1,4 +1,4 @@
-import { Button } from "@heroui/button";
+import { Button } from "@/components/ui/button";
 import FormControles from "./formsControles";
 
 interface FormProps {
@@ -12,9 +12,15 @@ interface FormProps {
 
 const Forms: React.FC<FormProps> = ({ handleSubmit, buttonText, formControles = [], formData, setFormData, state }) => {
     return (
-        <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+        <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
             <FormControles formControles={formControles} formData={formData} setFormData={setFormData} />
-            <Button color="primary" isLoading={state} type="submit">{buttonText || "Submit"}</Button>
+            <Button 
+                className="w-full bg-[#3182CE] hover:bg-blue-600" 
+                disabled={state} 
+                type="submit"
+            >
+                {state ? "Please wait..." : (buttonText || "Submit")}
+            </Button>
         </form>
     );
 };

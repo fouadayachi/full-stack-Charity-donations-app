@@ -1,10 +1,20 @@
+/* eslint-disable jsx-a11y/label-has-associated-control */
 import React, { useState } from "react";
-import { CheckIcon } from "lucide-react";
-import { Button } from "@heroui/button";
-import { Input } from "@heroui/input";
 import useVolunteerStore from "@/store/useVolunteerStore";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { CheckIcon, Loader2 } from "lucide-react";
 
-export function VolunteerSection({ id, user,eventId }: { id: string; user: any,eventId: any}) {
+export function VolunteerSection({
+  id,
+  user,
+  eventId,
+}: {
+  id: string;
+  user: any;
+  eventId: any;
+}) {
   const [name, setName] = useState<string>(
     user ? `${user.lastName} ${user.firstName}` : ""
   );
@@ -22,15 +32,15 @@ export function VolunteerSection({ id, user,eventId }: { id: string; user: any,e
       name,
       email,
       phone,
-      address
+      address,
     };
-    
-    await addVolunteer(volunteerData)
+
+    await addVolunteer(volunteerData);
   };
 
   if (isSubmitted) {
     return (
-      <div className="bg-white p-6 rounded-xl shadow-md my-8">
+      <div className="bg-white p-6 rounded-xl shadow-md my-8 border border-gray-100">
         <div className="text-center py-8">
           <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
             <CheckIcon className="text-green-600" size={32} />
@@ -48,70 +58,77 @@ export function VolunteerSection({ id, user,eventId }: { id: string; user: any,e
   }
 
   return (
-    <section className="bg-white p-6 rounded-xl shadow-md my-8" id={id}>
+    <section
+      className="bg-white p-6 rounded-xl shadow-md my-8 border border-gray-100"
+      id={id}
+    >
       <h2 className="text-2xl font-bold text-blue-900 mb-6">
         Volunteer Sign Up
       </h2>
       <form onSubmit={handleSubmit}>
-        <div className="flex flex-col gap-4 mb-6">
-          <Input
-            isRequired
-            className="w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-            label="Full Name"
-            labelPlacement="outside"
-            placeholder="Enter your full name"
-            size="lg"
-            type="text"
-            value={name}
-            variant="bordered"
-            onValueChange={setName}
-          />
+        <div className="flex flex-col gap-5 mb-6">
+          <div className="space-y-2">
+            <Label htmlFor="volunteer-name">Full Name *</Label>
+            <Input
+              required
+              id="volunteer-name"
+              placeholder="Enter your full name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
 
-          <Input
-            isRequired
-            className="w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-            label="Email Address"
-            labelPlacement="outside"
-            placeholder="Enter your email address"
-            size="lg"
-            type="email"
-            value={email}
-            variant="bordered"
-            onValueChange={setEmail}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="volunteer-email">Email Address *</Label>
+            <Input
+              required
+              id="volunteer-email"
+              placeholder="Enter your email address"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
 
-          <Input
-            isRequired
-            className="w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-            label="Phone Number"
-            labelPlacement="outside"
-            placeholder="Enter your phone number"
-            size="lg"
-            type="tel"
-            value={phone}
-            variant="bordered"
-            onValueChange={setPhone}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="volunteer-phone">Phone Number *</Label>
+            <Input
+              required
+              id="volunteer-phone"
+              placeholder="Enter your phone number"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
 
-          <Input
-            isRequired
-            className="w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-            label="Address"
-            labelPlacement="outside"
-            placeholder="Enter your address"
-            size="lg"
-            type="text"
-            value={address}
-            variant="bordered"
-            onValueChange={setAddress}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="volunteer-address">Address *</Label>
+            <Input
+              required
+              id="volunteer-address"
+              placeholder="Enter your address"
+              type="text"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+          </div>
         </div>
+
         <Button
-          className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md text-lg shadow-md transition-colors"
-          isLoading={isLoading}
+          className="w-full py-6 bg-[#3182CE] hover:bg-blue-700 text-white font-bold rounded-md text-lg shadow-sm transition-all"
+          disabled={isLoading}
           type="submit"
         >
-          Sign Up
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            "Sign Up"
+          )}
         </Button>
       </form>
     </section>

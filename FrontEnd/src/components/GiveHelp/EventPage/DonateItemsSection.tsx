@@ -1,9 +1,10 @@
-import useItemDonationStore from "@/store/useItemDonationStore";
-import { Button } from "@heroui/button";
-import { Input } from "@heroui/input";
-import { NumberInput } from "@heroui/number-input";
-import { CheckIcon } from "lucide-react";
+/* eslint-disable jsx-a11y/label-has-associated-control */
 import React, { useState } from "react";
+import useItemDonationStore from "@/store/useItemDonationStore";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { CheckIcon, Loader2 } from "lucide-react";
 
 interface Item {
   name: string;
@@ -33,20 +34,22 @@ export function DonateItemsSection({
   const [address, setAddress] = useState<string>(user ? user.address : "");
   const { isLoading, isSubmitted, addItemDonation } = useItemDonationStore();
 
-  const handleDonationChange = (itemName: string, value: number) => {
+  const handleDonationChange = (itemName: string, value: string) => {
+    const numValue = parseInt(value) || 0;
+
     setDonations({
       ...donations,
-      [itemName]: value < 0 ? 0 : value,
+      [itemName]: numValue < 0 ? 0 : numValue,
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const items = [];
+    const itemsToDonate = [];
 
     for (let donation in donations) {
       if (donations[donation] > 0) {
-        items.push({
+        itemsToDonate.push({
           name: donation,
           quantityDonated: donations[donation],
         });
@@ -56,7 +59,7 @@ export function DonateItemsSection({
     const itemDonateData = {
       userId: user?._id,
       eventId: eventId,
-      items: items,
+      items: itemsToDonate,
       name,
       email,
       phone,
@@ -70,7 +73,7 @@ export function DonateItemsSection({
 
   if (isSubmitted) {
     return (
-      <div className="bg-white p-6 rounded-xl shadow-md my-8">
+      <div className="bg-white p-6 rounded-xl shadow-md my-8 border border-gray-100">
         <div className="text-center py-8">
           <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
             <CheckIcon className="text-green-600" size={32} />
@@ -88,7 +91,7 @@ export function DonateItemsSection({
   }
 
   return (
-    <section className="bg-white p-6 rounded-xl shadow-md my-8" id={id}>
+    <section className="bg-white p-6 rounded-xl shadow-md my-8 border border-gray-100" id={id}>
       <h2 className="text-2xl font-bold text-blue-900 mb-6">Donate Items</h2>
       <form onSubmit={handleSubmit}>
         <div className="mb-6">
@@ -100,22 +103,22 @@ export function DonateItemsSection({
               const remaining = item.quantityNeeded - item.quantityDonated;
 
               return (
-                <div key={index} className="flex items-center justify-between">
+                <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-100">
                   <div>
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-semibold text-gray-900">{item.name}</p>
+                    <p className="text-sm text-gray-500">
                       {remaining} more needed
                     </p>
                   </div>
                   <div className="w-24">
-                    <NumberInput
-                      className="w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                      maxValue={remaining}
-                      size="sm"
+                    <Input
+                      className="text-center focus:ring-blue-500"
+                      max={remaining}
+                      min={0}
+                      type="number"
                       value={donations[item.name]}
-                      variant="bordered"
-                      onValueChange={(value) =>
-                        handleDonationChange(item.name, value)
+                      onChange={(e) =>
+                        handleDonationChange(item.name, e.target.value)
                       }
                     />
                   </div>
@@ -124,84 +127,77 @@ export function DonateItemsSection({
             })}
           </div>
         </div>
-        <div className="flex flex-col gap-4 mb-6">
-          <Input
-            isRequired
-            className="w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-            label="Full Name"
-            labelPlacement="outside"
-            placeholder="Enter your full name"
-            size="lg"
-            type="text"
-            value={name}
-            variant="bordered"
-            onValueChange={setName}
-          />
 
-          <Input
-            isRequired
-            className="w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-            label="Email Address"
-            labelPlacement="outside"
-            placeholder="Enter your email address"
-            size="lg"
-            type="email"
-            value={email}
-            variant="bordered"
-            onValueChange={setEmail}
-          />
+        <div className="flex flex-col gap-5 mb-6 pt-2">
+          <div className="space-y-2">
+            <Label htmlFor="fullname">Full Name *</Label>
+            <Input
+              required
+              id="fullname"
+              placeholder="Enter your full name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
 
-          <Input
-            isRequired
-            className="w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-            label="Phone Number"
-            labelPlacement="outside"
-            placeholder="Enter your phone number"
-            size="lg"
-            type="tel"
-            value={phone}
-            variant="bordered"
-            onValueChange={setPhone}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="email">Email Address *</Label>
+            <Input
+              required
+              id="email"
+              placeholder="Enter your email address"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
 
-          <Input
-            isRequired
-            className="w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-            label="Address"
-            labelPlacement="outside"
-            placeholder="Enter your address"
-            size="lg"
-            type="text"
-            value={address}
-            variant="bordered"
-            onValueChange={setAddress}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number *</Label>
+            <Input
+              required
+              id="phone"
+              placeholder="Enter your phone number"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address">Address *</Label>
+            <Input
+              required
+              id="address"
+              placeholder="Enter your address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+          </div>
         </div>
-        {/* <div className="bg-blue-50 p-4 rounded-md mb-6">
-          <h4 className="font-medium text-blue-900 mb-2">
-            Drop-Off Instructions
-          </h4>
-          <p className="text-gray-700">
-            Items can be dropped off at our main location (123 Main Street,
-            Anytown) Monday through Friday between 9 AM and 5 PM. Please bring
-            this confirmation with you when you drop off your items.
-          </p>
-        </div> */}
+
         <Button
-          className={`w-full px-6 py-3 font-bold rounded-md text-lg shadow-md transition-colors ${
+          className={`w-full py-6 font-bold text-lg shadow-sm transition-all ${
             hasDonations
-              ? "bg-blue-600 hover:bg-blue-700 text-white"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              ? "bg-[#3182CE] hover:bg-blue-700 text-white"
+              : "bg-gray-200 text-gray-400 cursor-not-allowed"
           }`}
-          disabled={!hasDonations}
-          isLoading={isLoading}
+          disabled={!hasDonations || isLoading}
           type="submit"
         >
-          Donate Items
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            "Donate Items"
+          )}
         </Button>
+        
         {!hasDonations && (
-          <p className="text-sm text-gray-500 mt-2 text-center">
-            Please select at least one item to donate
+          <p className="text-xs text-gray-400 mt-3 text-center italic">
+            Please select at least one item quantity to continue
           </p>
         )}
       </form>

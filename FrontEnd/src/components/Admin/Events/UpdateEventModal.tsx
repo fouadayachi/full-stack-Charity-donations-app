@@ -1,13 +1,12 @@
 /* eslint-disable jsx-a11y/img-redundant-alt */
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { Button } from "@heroui/button";
-import { parseAbsoluteToLocal } from "@internationalized/date";
 import React, { useEffect, useState } from "react";
-import { DatePicker } from "@heroui/date-picker";
-import { NumberInput } from "@heroui/number-input";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Calendar as CalendarIcon,
-  Clock,
   DollarSign as DollarSignIcon,
   MapPin as MapPinIcon,
   Package as PackageIcon,
@@ -16,7 +15,6 @@ import {
   Trash as TrashIcon,
   Users as UsersIcon,
   X,
-  Upload as UploadIcon,
 } from "lucide-react";
 
 export interface Event {
@@ -50,6 +48,22 @@ interface UpdateEventModalProps {
   onUpdate: (updatedEvent: Event) => void;
 }
 
+/** * Helpers for datetime-local input 
+ */
+const toDatetimeLocal = (isoString: string) => {
+  if (!isoString) return "";
+  const date = new Date(isoString);
+  const offset = date.getTimezoneOffset() * 60000;
+
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+};
+
+const fromDatetimeLocal = (localValue: string) => {
+  if (!localValue) return "";
+
+  return new Date(localValue).toISOString();
+};
+
 export const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
   isOpen,
   onClose,
@@ -58,12 +72,9 @@ export const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
 }) => {
   const [formData, setFormData] = useState<Event | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [startDate, setStartDate] = useState(
-    parseAbsoluteToLocal("2025-03-14T20:50:33.777+00:00")
-  );
-  const [endDate, setEndDate] = useState(
-    parseAbsoluteToLocal("2025-03-14T20:50:33.777+00:00")
-  );
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  
   const [itemInput, setItemInput] = useState<{
     name: string;
     quantityNeeded: number;
@@ -73,155 +84,36 @@ export const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
 
   useEffect(() => {
     if (event) {
-      setFormData({
-        ...event,
-      });
-      setStartDate(parseAbsoluteToLocal(event.startDate));
-      setEndDate(parseAbsoluteToLocal(event.endDate));
+      setFormData({ ...event });
+      setStartDate(event.startDate);
+      setEndDate(event.endDate);
       setNewImages([]);
       setNewMainImage(null);
     }
   }, [event]);
 
-  const handleRemoveMainImage = () => {
-    if (formData && formData.images.length > 0) {
-      const [newMain, ...remainingImages] = formData.images;
-
-      setFormData({
-        ...formData,
-        mainImage: newMain,
-        images: remainingImages,
-      });
-    } else if (newMainImage && newImages.length > 0) {
-      setNewMainImage(newImages[0]);
-      setNewImages(newImages.slice(1));
-    } else {
-      setNewMainImage(null);
-    }
-  };
-
-  const handleRemoveImage = (index: number) => {
-    if (formData) {
-      const newImagesList = [...formData.images];
-
-      newImagesList.splice(index, 1);
-      setFormData({
-        ...formData,
-        images: newImagesList,
-      });
-    }
-  };
-
-  const handleRemoveNewImage = (index: number) => {
-    const updatedImages = [...newImages];
-
-    updatedImages.splice(index, 1);
-    setNewImages(updatedImages);
-  };
-
   if (!isOpen || !formData) return null;
 
   const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
 
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: "",
-      });
-    }
-  };
-
-  const handleAddItem = () => {
-    if (!formData.targetItems) {
-      formData.targetItems = [];
-    }
-    setFormData({
-      ...formData,
-      targetItems: [
-        ...formData.targetItems,
-        {
-          name: itemInput.name,
-          quantityNeeded: itemInput.quantityNeeded,
-          quantityDonated: 0,
-        },
-      ],
-    });
-    setItemInput({ name: "", quantityNeeded: 0 });
-  };
-
-  const handleRemoveItem = (index: number) => {
-    if (formData.targetItems && formData.targetItems.length > 1) {
-      const updatedItems = [...formData.targetItems];
-
-      updatedItems.splice(index, 1);
-      setFormData({
-        ...formData,
-        targetItems: updatedItems,
-      });
-    }
-  };
-
-  const handleItemChange = (
-    index: number,
-    field: "name" | "quantityNeeded" | "quantityDonated",
-    value: string | number
-  ) => {
-    if (formData.targetItems) {
-      const updatedItems = [...formData.targetItems];
-
-      if (field === "name") {
-        updatedItems[index].name = value as string;
-      } else if (field === "quantityNeeded") {
-        updatedItems[index].quantityNeeded = value as number;
-      } else {
-        updatedItems[index].quantityDonated = value as number;
-      }
-      setFormData({
-        ...formData,
-        targetItems: updatedItems,
-      });
-    }
+    setFormData({ ...formData, [name]: value });
+    if (errors[name]) setErrors({ ...errors, [name]: "" });
   };
 
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
 
     if (!formData.title) newErrors.title = "Title is required";
-    if (!formData.shortDescription)
-      newErrors.shortDescription = "Short description is required";
+    if (!formData.shortDescription) newErrors.shortDescription = "Short description is required";
     if (!formData.location) newErrors.location = "Location is required";
     if (!startDate) newErrors.startDate = "Start date is required";
     if (!endDate) newErrors.endDate = "End date is required";
-    if (startDate && endDate) {
-      if (endDate < startDate) {
-        newErrors.endDate = "End date must be after start date";
-      }
-    }
-
-    if (formData.type === "donation" && !formData.targetAmount) {
-      newErrors.targetAmount = "Target amount is required";
-    }
-
-    if (formData.type === "volunteer" && !formData.targetVolunteers) {
-      newErrors.targetVolunteers = "Number of volunteers is required";
-    }
-
-    if (
-      formData.type === "items" &&
-      formData.targetItems?.some(
-        (item) => !item.name || item.quantityNeeded <= 0
-      )
-    ) {
-      newErrors.targetItems = "All items must have a name and quantity needed";
+    
+    if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
+      newErrors.endDate = "End date must be after start date";
     }
 
     setErrors(newErrors);
@@ -229,43 +121,64 @@ export const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const changeDateFormat = (date: any) => {
-    const jsDate = date.toDate();
-    const isoString = jsDate.toISOString();
-
-    return isoString.replace("Z", "+00:00");
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm() && formData) {
-      const updatedEvent = {
+      onUpdate({
         ...formData,
-        startDate: changeDateFormat(startDate),
-        endDate: changeDateFormat(endDate),
+        startDate,
+        endDate,
+        // Assuming your backend handles the File objects via FormData
+        // @ts-ignore
         newMainImage,
+        // @ts-ignore
         newImages,
-      };
-
-      onUpdate(updatedEvent);
+      });
       onClose();
     }
   };
 
-  const getTypeColor = (type: "donation" | "volunteer" | "items") => {
-    switch (type) {
-      case "donation":
-        return "#3182CE";
-      case "volunteer":
-        return "#48BB78";
-      case "items":
-        return "#805AD5";
-      default:
-        return "#718096";
+  const handleRemoveMainImage = () => {
+    if (formData && formData.images.length > 0) {
+      const [newMain, ...remainingImages] = formData.images;
+
+      setFormData({ ...formData, mainImage: newMain, images: remainingImages });
+    } else {
+      setNewMainImage(null);
     }
   };
 
-  const typeColor = getTypeColor(formData.type);
+  const handleRemoveImage = (index: number) => {
+    const newImagesList = [...formData.images];
+
+    newImagesList.splice(index, 1);
+    setFormData({ ...formData, images: newImagesList });
+  };
+
+  const handleAddItem = () => {
+    const currentItems = formData.targetItems || [];
+
+    setFormData({
+      ...formData,
+      targetItems: [
+        ...currentItems,
+        { name: itemInput.name, quantityNeeded: itemInput.quantityNeeded, quantityDonated: 0 },
+      ],
+    });
+    setItemInput({ name: "", quantityNeeded: 0 });
+  };
+
+  const handleItemChange = (index: number, field: string, value: any) => {
+    if (formData.targetItems) {
+      const updatedItems = [...formData.targetItems];
+
+      // @ts-ignore
+      updatedItems[index][field] = value;
+      setFormData({ ...formData, targetItems: updatedItems });
+    }
+  };
+
+  const typeColor = formData.type === "donation" ? "#3182CE" : formData.type === "volunteer" ? "#48BB78" : "#805AD5";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -273,67 +186,45 @@ export const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
         <div className="flex justify-between items-center p-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-[#1A365D] flex items-center">
             Update Event
-            <span
-              className="ml-2 px-2 py-1 text-xs font-semibold rounded-full text-white"
-              style={{ backgroundColor: typeColor }}
-            >
+            <span className="ml-2 px-2 py-1 text-xs font-semibold rounded-full text-white" style={{ backgroundColor: typeColor }}>
               {formData.type}
             </span>
           </h2>
-          <button
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-            onClick={onClose}
-          >
+          <button className="text-gray-400 hover:text-gray-600 transition-colors" onClick={onClose}>
             <X size={20} />
           </button>
         </div>
+
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-130px)]">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label className="mb-1 block">
                     <span className="flex items-center">
                       <TagIcon className="mr-1 text-[#3182CE]" size={16} />
                       Event Title <span className="text-red-500">*</span>
                     </span>
-                  </label>
-                  <input
-                    className={`block w-full border ${
-                      errors.title ? "border-red-500" : "border-gray-300"
-                    } rounded-md py-2 px-3 shadow-sm focus:outline-none focus:ring-[#3182CE] focus:border-[#3182CE]`}
+                  </Label>
+                  <Input
+                    className={errors.title ? "border-red-500" : ""}
                     name="title"
-                    type="text"
                     value={formData.title}
                     onChange={handleInputChange}
                   />
-                  {errors.title && (
-                    <p className="mt-1 text-sm text-red-500">{errors.title}</p>
-                  )}
+                  {errors.title && <p className="mt-1 text-sm text-red-500">{errors.title}</p>}
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Event Status
-                  </label>
+                  <Label className="mb-1 block">Event Status</Label>
                   <div className="flex gap-2">
                     {["active", "completed", "canceled"].map((state) => (
                       <Button
                         key={state}
-                        className={`px-4 py-2 rounded-lg ${
-                          formData.status === state
-                            ? "bg-blue-500 text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
-                        variant="bordered"
-                        onPress={() =>
-                          setFormData({
-                            ...formData,
-                            status: state as
-                              | "active"
-                              | "completed"
-                              | "canceled",
-                          })
-                        }
+                        className={formData.status === state ? "bg-blue-500" : ""}
+                        type="button"
+                        variant={formData.status === state ? "default" : "outline"}
+                        onClick={() => setFormData({ ...formData, status: state as any })}
                       >
                         {state.charAt(0).toUpperCase() + state.slice(1)}
                       </Button>
@@ -341,624 +232,191 @@ export const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
                   </div>
                 </div>
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Short Description <span className="text-red-500">*</span>
-                </label>
-                <input
-                  className={`block w-full border ${
-                    errors.shortDescription
-                      ? "border-red-500"
-                      : "border-gray-300"
-                  } rounded-md py-2 px-3 shadow-sm focus:outline-none focus:ring-[#3182CE] focus:border-[#3182CE]`}
+                <Label className="mb-1 block">Short Description <span className="text-red-500">*</span></Label>
+                <Input
+                  className={errors.shortDescription ? "border-red-500" : ""}
                   name="shortDescription"
-                  type="text"
                   value={formData.shortDescription}
                   onChange={handleInputChange}
                 />
-                {errors.shortDescription && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.shortDescription}
-                  </p>
-                )}
+                {errors.shortDescription && <p className="mt-1 text-sm text-red-500">{errors.shortDescription}</p>}
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Long Description
-                </label>
-                <textarea
-                  className="block w-full border border-gray-300 rounded-md py-2 px-3 shadow-sm focus:outline-none focus:ring-[#3182CE] focus:border-[#3182CE]"
+                <Label className="mb-1 block">Long Description</Label>
+                <Textarea
                   name="longDescription"
                   rows={3}
                   value={formData.longDescription}
                   onChange={handleInputChange}
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <Label className="mb-1 block">
                   <span className="flex items-center">
                     <MapPinIcon className="mr-1 text-[#3182CE]" size={16} />
                     Location <span className="text-red-500">*</span>
                   </span>
-                </label>
-                <input
-                  className={`block w-full border ${
-                    errors.location ? "border-red-500" : "border-gray-300"
-                  } rounded-md py-2 px-3 shadow-sm focus:outline-none focus:ring-[#3182CE] focus:border-[#3182CE]`}
+                </Label>
+                <Input
+                  className={errors.location ? "border-red-500" : ""}
                   name="location"
-                  type="text"
                   value={formData.location}
                   onChange={handleInputChange}
                 />
-                {errors.location && (
-                  <p className="mt-1 text-sm text-red-500">{errors.location}</p>
-                )}
+                {errors.location && <p className="mt-1 text-sm text-red-500">{errors.location}</p>}
               </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label className="mb-1 block">
                     <span className="flex items-center">
                       <CalendarIcon className="mr-1 text-[#F56565]" size={16} />
                       Start Date <span className="text-red-500">*</span>
                     </span>
-                  </label>
-                  <DatePicker
-                    hideTimeZone
-                    showMonthAndYearPickers
-                    granularity="minute"
-                    value={startDate}
-                    variant="bordered"
-                    onChange={(date: any) => setStartDate(date)}
+                  </Label>
+                  <Input
+                    className={errors.startDate ? "border-red-500" : ""}
+                    type="datetime-local"
+                    value={toDatetimeLocal(startDate)}
+                    onChange={(e) => setStartDate(fromDatetimeLocal(e.target.value))}
                   />
-                  {errors.startDate && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.startDate}
-                    </p>
-                  )}
+                  {errors.startDate && <p className="mt-1 text-sm text-red-500">{errors.startDate}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <Label className="mb-1 block">
                     <span className="flex items-center">
                       <CalendarIcon className="mr-1 text-[#F56565]" size={16} />
                       End Date <span className="text-red-500">*</span>
                     </span>
-                  </label>
-                  <DatePicker
-                    hideTimeZone
-                    showMonthAndYearPickers
-                    value={endDate}
-                    variant="bordered"
-                    onChange={(date: any) => setEndDate(date)}
+                  </Label>
+                  <Input
+                    className={errors.endDate ? "border-red-500" : ""}
+                    type="datetime-local"
+                    value={toDatetimeLocal(endDate)}
+                    onChange={(e) => setEndDate(fromDatetimeLocal(e.target.value))}
                   />
-                  {errors.endDate && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.endDate}
-                    </p>
-                  )}
+                  {errors.endDate && <p className="mt-1 text-sm text-red-500">{errors.endDate}</p>}
                 </div>
               </div>
 
-              {/* Modern Image Management Section */}
-              <div className="space-y-6">
-                {/* Main Image Section */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-gray-900">Main Image</h3>
-                  <div className="flex flex-col sm:flex-row gap-6">
-                    {/* Current Main Image Preview */}
-                    <div className="flex-1 max-w-md">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Current Main Image
-                      </label>
-                      <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-                        {formData.mainImage ? (
-                          <>
-                            <img
-                              alt="Current main event image"
-                              className="w-full h-full object-cover"
-                              src={formData.mainImage}
-                            />
-                            <button
-                              className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm hover:bg-white transition-colors"
-                              type="button"
-                              onClick={handleRemoveMainImage}
-                            >
-                              <X className="w-4 h-4 text-gray-700" />
-                            </button>
-                          </>
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            No main image selected
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* New Main Image Upload */}
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {newMainImage ? "New Main Image" : "Upload New Main Image"}
-                      </label>
-                      <div className="relative aspect-video bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors">
-                        {newMainImage ? (
-                          <>
-                            <img
-                              alt="New main event image"
-                              className="w-full h-full object-cover"
-                              src={URL.createObjectURL(newMainImage)}
-                            />
-                            <button
-                              className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm hover:bg-white transition-colors"
-                              type="button"
-                              onClick={() => setNewMainImage(null)}
-                            >
-                              <X className="w-4 h-4 text-gray-700" />
-                            </button>
-                          </>
-                        ) : (
-                          <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer">
-                            <UploadIcon className="w-8 h-8 text-gray-400 mb-2" />
-                            <span className="text-sm font-medium text-gray-600">
-                              Click to upload
-                            </span>
-                            <span className="text-xs text-gray-500 mt-1">
-                              Recommended: 16:9 aspect ratio
-                            </span>
-                            <input
-                              accept="image/*"
-                              className="hidden"
-                              type="file"
-                              onChange={(e) => {
-                                if (e.target.files && e.target.files.length > 0) {
-                                  setNewMainImage(e.target.files[0]);
-                                }
-                              }}
-                            />
-                          </label>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Additional Images Section */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-medium text-gray-900">Gallery Images</h3>
-                    <span className="text-sm text-gray-500">
-                      {formData.images.length + newImages.length} images
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    {/* Existing Images */}
-                    {formData.images.map((image, index) => (
-                      <div key={`existing-${index}`} className="relative group">
-                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                          <img
-                            alt={`Event image ${index + 1}`}
-                            className="w-full h-full object-cover"
-                            src={image}
-                          />
-                        </div>
-                        <button
-                          className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
-                          type="button"
-                          onClick={() => handleRemoveImage(index)}
-                        >
-                          <TrashIcon className="w-4 h-4 text-gray-700" />
-                        </button>
-                      </div>
-                    ))}
-
-                    {/* New Images */}
-                    {newImages.map((image, index) => (
-                      <div key={`new-${index}`} className="relative group">
-                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                          <img
-                            alt={`New image ${index + 1}`}
-                            className="w-full h-full object-cover"
-                            src={URL.createObjectURL(image)}
-                          />
-                        </div>
-                        <button
-                          className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
-                          type="button"
-                          onClick={() => handleRemoveNewImage(index)}
-                        >
-                          <TrashIcon className="w-4 h-4 text-gray-700" />
-                        </button>
-                      </div>
-                    ))}
-
-                    {/* Add More Button */}
-                    <label className="aspect-square flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors cursor-pointer">
-                      <div className="text-center p-4">
-                        <UploadIcon className="w-6 h-6 text-gray-400 mx-auto mb-2" />
-                        <span className="text-sm font-medium text-gray-600">
-                          Add images
-                        </span>
-                      </div>
-                      <input
-                        multiple
-                        accept="image/*"
-                        className="hidden"
-                        type="file"
-                        onChange={(e) => {
-                          if (e.target.files) {
-                            setNewImages([...newImages, ...Array.from(e.target.files)]);
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-                </div>
-              </div>
-
+              {/* Donation Details */}
               {formData.type === "donation" && (
-                <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
-                  <h3 className="text-md font-medium text-gray-800 mb-3 flex items-center">
+                <div className="bg-blue-50 p-4 rounded-md border border-blue-100 space-y-4">
+                  <h3 className="text-md font-medium text-gray-800 flex items-center">
                     <DollarSignIcon className="mr-2 text-[#3182CE]" size={18} />
                     Donation Details
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Target Amount ($){" "}
-                        <span className="text-red-500">*</span>
-                      </label>
-                      <NumberInput
-                        classNames={{
-                          inputWrapper: [
-                            "border rounded-md shadow-sm",
-                            errors.targetAmount
-                              ? "border-red-500"
-                              : "border-gray-300",
-                          ],
-                          input: [
-                            "focus:outline-none focus:ring-[#3182CE] focus:border-[#3182CE]",
-                          ],
-                        }}
-                        defaultValue={10}
-                        formatOptions={{
-                          style: "currency",
-                          currency: "USD",
-                        }}
-                        minValue={1}
-                        placeholder="Amount needed"
-                        size="sm"
+                      <Label className="mb-1 block">Target Amount ($) *</Label>
+                      <Input
+                        className={errors.targetAmount ? "border-red-500" : ""}
+                        type="number"
                         value={formData.targetAmount}
-                        variant="bordered"
-                        onValueChange={(value: number) => {
-                          setFormData({ ...formData, targetAmount: value });
-                          setErrors({
-                            ...errors,
-                            targetAmount: "",
-                          });
-                        }}
+                        onChange={(e) => setFormData({ ...formData, targetAmount: Number(e.target.value) })}
                       />
-                      {errors.targetAmount && (
-                        <p className="mt-1 text-sm text-red-500">
-                          {errors.targetAmount}
-                        </p>
-                      )}
+                      {errors.targetAmount && <p className="mt-1 text-sm text-red-500">{errors.targetAmount}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Current Amount
-                      </label>
-                      <NumberInput
-                        classNames={{
-                          inputWrapper: [
-                            "border rounded-md shadow-sm",
-                            errors.currentAmount
-                              ? "border-red-500"
-                              : "border-gray-300",
-                          ],
-                          input: [
-                            "focus:outline-none focus:ring-[#3182CE] focus:border-[#3182CE]",
-                          ],
-                        }}
-                        defaultValue={0}
-                        formatOptions={{
-                          style: "currency",
-                          currency: "USD",
-                        }}
-                        placeholder="Amount currently"
-                        size="sm"
+                      <Label className="mb-1 block">Current Amount</Label>
+                      <Input
+                        type="number"
                         value={formData.currentAmount}
-                        variant="bordered"
-                        onValueChange={(value) => {
-                          setFormData({ ...formData, currentAmount: value });
-                          setErrors({
-                            ...errors,
-                            currentAmount: "",
-                          });
-                        }}
+                        onChange={(e) => setFormData({ ...formData, currentAmount: Number(e.target.value) })}
                       />
                     </div>
                   </div>
                 </div>
               )}
+
+              {/* Volunteer Details */}
               {formData.type === "volunteer" && (
-                <div className="bg-green-50 p-4 rounded-md border border-green-100">
-                  <h3 className="text-md font-medium text-gray-800 mb-3 flex items-center">
+                <div className="bg-green-50 p-4 rounded-md border border-green-100 space-y-4">
+                  <h3 className="text-md font-medium text-gray-800 flex items-center">
                     <UsersIcon className="mr-2 text-[#48BB78]" size={18} />
                     Volunteer Details
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Number of Volunteers Needed{" "}
-                        <span className="text-red-500">*</span>
-                      </label>
-                      <NumberInput
-                        classNames={{
-                          inputWrapper: [
-                            "border rounded-md shadow-sm",
-                            errors.volunteersNeeded
-                              ? "border-red-500"
-                              : "border-gray-300",
-                          ],
-                          input: [
-                            "focus:outline-none focus:ring-[#3182CE] focus:border-[#3182CE]",
-                          ],
-                        }}
-                        defaultValue={1}
-                        placeholder="Number of volunteers"
-                        size="sm"
+                      <Label className="mb-1 block">Volunteers Needed *</Label>
+                      <Input
+                        type="number"
                         value={formData.targetVolunteers}
-                        variant="bordered"
-                        onValueChange={(value) => {
-                          setFormData({
-                            ...formData,
-                            targetVolunteers: value > 1 ? value : 1,
-                          });
-                          setErrors({
-                            ...errors,
-                            volunteersNeeded: "",
-                          });
-                        }}
-                      />
-                      {errors.targetVolunteers && (
-                        <p className="mt-1 text-sm text-red-500">
-                          {errors.targetVolunteers}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Current Volunteers
-                      </label>
-                      <NumberInput
-                        classNames={{
-                          inputWrapper: [
-                            "border rounded-md shadow-sm",
-                            errors.currentVolunteers
-                              ? "border-red-500"
-                              : "border-gray-300",
-                          ],
-                          input: [
-                            "focus:outline-none focus:ring-[#3182CE] focus:border-[#3182CE]",
-                          ],
-                        }}
-                        defaultValue={0}
-                        placeholder="Number current of volunteers"
-                        size="sm"
-                        value={formData.currentVolunteers}
-                        variant="bordered"
-                        onValueChange={(value) => {
-                          setFormData({
-                            ...formData,
-                            currentVolunteers: value > 0 ? value : 0,
-                          });
-                          setErrors({
-                            ...errors,
-                            currentVolunteers: "",
-                          });
-                        }}
+                        onChange={(e) => setFormData({ ...formData, targetVolunteers: Number(e.target.value) })}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        <span className="flex items-center">
-                          <Clock className="mr-1 text-[#48BB78]" size={16} />
-                          Hours Per Volunteer{" "}
-                          <span className="text-red-500">*</span>
-                        </span>
-                      </label>
-                      <NumberInput
-                        classNames={{
-                          inputWrapper: [
-                            "border rounded-md shadow-sm",
-                            errors.hoursPerVolunteer
-                              ? "border-red-500"
-                              : "border-gray-300",
-                          ],
-                          input: [
-                            "focus:outline-none focus:ring-[#3182CE] focus:border-[#3182CE]",
-                          ],
-                        }}
-                        defaultValue={1}
-                        maxValue={480}
-                        minValue={1}
-                        placeholder="Hours required per volunteer"
-                        size="sm"
+                      <Label className="mb-1 block">Hours Per Volunteer *</Label>
+                      <Input
+                        type="number"
                         value={formData.volunteerHours}
-                        variant="bordered"
-                        onValueChange={(value) => {
-                          setFormData({
-                            ...formData,
-                            volunteerHours: value > 0 ? value : 0,
-                          });
-                          setErrors({
-                            ...errors,
-                            volunteerHours: "",
-                          });
-                        }}
+                        onChange={(e) => setFormData({ ...formData, volunteerHours: Number(e.target.value) })}
                       />
                     </div>
                   </div>
                 </div>
               )}
+
+              {/* Items Section remains similar but using Shadcn Inputs */}
               {formData.type === "items" && (
                 <div className="bg-purple-50 p-4 rounded-md border border-purple-100">
-                  <div className="flex justify-between items-center mb-3">
+                   <div className="flex justify-between items-center mb-3">
                     <h3 className="text-md font-medium text-gray-800 flex items-center">
                       <PackageIcon className="mr-2 text-[#805AD5]" size={18} />
                       Items Details
                     </h3>
-                    <button
-                      className="flex items-center text-[#805AD5] hover:text-purple-700 transition-colors"
-                      type="button"
-                      onClick={handleAddItem}
-                    >
-                      <PlusIcon className="mr-1" size={16} />
-                      Add Item
-                    </button>
+                    <Button className="text-[#805AD5]" size="sm" type="button" variant="ghost" onClick={handleAddItem}>
+                      <PlusIcon className="mr-1" size={16} /> Add Item
+                    </Button>
                   </div>
-                  {errors.targetItems && (
-                    <p className="mb-2 text-sm text-red-500">
-                      {errors.targetItems}
-                    </p>
-                  )}
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th
-                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          scope="col"
-                        >
-                          Item Name *
-                        </th>
-                        <th
-                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          scope="col"
-                        >
-                          Quantity Needed *
-                        </th>
-                        <th
-                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          scope="col"
-                        >
-                          Quantity Donated
-                        </th>
-                        <th
-                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          scope="col"
-                        >
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {formData.targetItems?.map((item, index) => (
-                        <tr key={index}>
-                          <td className="px-4 py-2">
-                            <input
-                              className="block w-full border border-gray-300 rounded-md py-1 px-2 shadow-sm focus:outline-none focus:ring-[#3182CE] focus:border-[#3182CE] text-sm"
-                              placeholder="Item name"
-                              type="text"
-                              value={item.name}
-                              onChange={(e) =>
-                                handleItemChange(index, "name", e.target.value)
-                              }
-                            />
-                          </td>
-                          <td className="px-4 py-2">
-                            <input
-                              className="block w-full border border-gray-300 rounded-md py-1 px-2 shadow-sm focus:outline-none focus:ring-[#3182CE] focus:border-[#3182CE] text-sm"
-                              min="1"
-                              placeholder="Quantity Needed"
-                              type="number"
-                              value={item.quantityNeeded || ""}
-                              onChange={(e) =>
-                                handleItemChange(
-                                  index,
-                                  "quantityNeeded",
-                                  parseInt(e.target.value || "0", 10)
-                                )
-                              }
-                            />
-                          </td>
-                          <td className="px-4 py-2">
-                            <input
-                              className="block w-full border border-gray-300 rounded-md py-1 px-2 shadow-sm focus:outline-none focus:ring-[#3182CE] focus:border-[#3182CE] text-sm"
-                              min="0"
-                              placeholder="Quantity Donated"
-                              type="number"
-                              value={item.quantityDonated || 0}
-                              onChange={(e) =>
-                                handleItemChange(
-                                  index,
-                                  "quantityDonated",
-                                  parseInt(e.target.value || "0", 10)
-                                )
-                              }
-                            />
-                          </td>
-                          <td className="px-4 py-2">
-                            <button
-                              className="text-red-600 hover:text-red-800 transition-colors"
-                              disabled={formData.targetItems?.length === 1}
-                              type="button"
-                              onClick={() => handleRemoveItem(index)}
-                            >
-                              <TrashIcon size={16} />
-                            </button>
-                          </td>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item Name *</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Qty Needed *</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {formData.targetItems?.map((item, index) => (
+                          <tr key={index}>
+                            <td className="px-4 py-2">
+                              <Input 
+                                value={item.name} 
+                                onChange={(e) => handleItemChange(index, "name", e.target.value)} 
+                              />
+                            </td>
+                            <td className="px-4 py-2">
+                              <Input 
+                                type="number" 
+                                value={item.quantityNeeded} 
+                                onChange={(e) => handleItemChange(index, "quantityNeeded", Number(e.target.value))} 
+                              />
+                            </td>
+                            <td className="px-4 py-2">
+                              <Button size="icon" variant="ghost" onClick={() => handleRemoveImage(index)}>
+                                <TrashIcon className="text-red-500" size={16} />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
             </div>
-            <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-              <h3 className="text-md font-medium text-gray-800 mb-3">
-                Reference Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Event ID
-                  </label>
-                  <input
-                    readOnly
-                    className="block w-full bg-gray-100 border border-gray-300 rounded-md py-2 px-3 shadow-sm text-gray-500"
-                    type="text"
-                    value={formData._id || ""}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Event Type
-                  </label>
-                  <input
-                    readOnly
-                    className="block w-full bg-gray-100 border border-gray-300 rounded-md py-2 px-3 shadow-sm text-gray-500"
-                    type="text"
-                    value={formData.type}
-                  />
-                </div>
-              </div>
-            </div>
           </form>
         </div>
+
         <div className="flex justify-end items-center p-4 border-t border-gray-200 bg-gray-50">
-          <button
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 mr-3"
-            type="button"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-          <button
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#3182CE] hover:bg-blue-600"
-            type="button"
-            onClick={handleSubmit}
-          >
-            Save Changes
-          </button>
+          <Button className="mr-3" variant="outline" onClick={onClose}>Cancel</Button>
+          <Button className="bg-[#3182CE] hover:bg-blue-600" onClick={handleSubmit}>Save Changes</Button>
         </div>
       </div>
     </div>

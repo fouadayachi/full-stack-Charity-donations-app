@@ -138,15 +138,7 @@ export const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
     }
   };
 
-  const handleRemoveMainImage = () => {
-    if (formData && formData.images.length > 0) {
-      const [newMain, ...remainingImages] = formData.images;
-
-      setFormData({ ...formData, mainImage: newMain, images: remainingImages });
-    } else {
-      setNewMainImage(null);
-    }
-  };
+  
 
   const handleRemoveImage = (index: number) => {
     const newImagesList = [...formData.images];

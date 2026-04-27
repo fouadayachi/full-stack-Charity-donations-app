@@ -31,10 +31,10 @@ export const UpdateShowcaseModal: React.FC<UpdateShowcaseModalProps> = ({
   isUpdating,
 }) => {
   const [formData, setFormData] = useState<Showcase | null>(null);
-  const [startDate, setStartDate] = useState(
+  const [startDate, setStartDate] = useState<any>(
     parseAbsoluteToLocal("2025-03-14T20:50:33.777+00:00")
   );
-  const [endDate, setEndDate] = useState(
+  const [endDate, setEndDate] = useState<any>(
     parseAbsoluteToLocal("2025-03-14T20:50:33.777+00:00")
   );
   const [errors, setErrors] = useState<{

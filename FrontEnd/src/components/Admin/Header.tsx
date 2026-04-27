@@ -28,7 +28,7 @@ export const Header = () => {
               </DropdownMenu>
             </Dropdown>
             <div className="ml-2 hidden md:block">
-              <p className="text-sm font-medium">Fouad Ayachi</p>
+              <p className="text-sm font-medium">Lahcen Amroune</p>
               <p className="text-xs text-gray-500">Administrator</p>
             </div>
           </div>

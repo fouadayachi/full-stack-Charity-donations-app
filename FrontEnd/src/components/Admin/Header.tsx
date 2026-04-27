@@ -14,7 +14,7 @@ export const Header = () => {
           <div className="relative flex items-center">
             <Dropdown>
               <DropdownTrigger className=" cursor-pointer">
-                <Avatar isBordered color="primary" name="Fouad" size="sm" />
+                <Avatar isBordered color="primary" name="Lahcen" size="sm" />
               </DropdownTrigger>
               <DropdownMenu aria-label="Static Actions">
                 <DropdownItem

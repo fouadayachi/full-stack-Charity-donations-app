@@ -2,7 +2,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { Button } from "@heroui/button";
 import { DatePicker } from "@heroui/date-picker";
-import { parseAbsoluteToLocal } from "@internationalized/date";
+import { parseAbsoluteToLocal } from "@internationalized/date"; // ← keep this
 import {
     Award as AwardIcon,
     Calendar as CalendarIcon,
@@ -306,7 +306,7 @@ export const UpdateShowcaseModal: React.FC<UpdateShowcaseModalProps> = ({
                     hideTimeZone
                     showMonthAndYearPickers
                     granularity="minute"
-                    value={startDate}
+                    value={startDate as any}
                     variant="bordered"
                     onChange={(date: any) => setStartDate(date)}
                   />
@@ -327,7 +327,7 @@ export const UpdateShowcaseModal: React.FC<UpdateShowcaseModalProps> = ({
                     hideTimeZone
                     showMonthAndYearPickers
                     granularity="minute"
-                    value={endDate}
+                    value={endDate as any}
                     variant="bordered"
                     onChange={(date: any) => setEndDate(date)}
                   />

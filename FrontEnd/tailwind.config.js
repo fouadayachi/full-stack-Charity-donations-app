@@ -5,12 +5,12 @@ import tailwindAnimate from "tailwindcss-animate";
 export default {
   darkMode: ["class"],
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx,mdx}",
-    // HeroUI content paths
-    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
-    "./node_modules/@heroui/theme/dist/components/(button|input|select|modal|checkbox|switch|radio).js"
-  ],
+  "./index.html",
+  "./src/**/*.{js,ts,jsx,tsx,mdx}",
+  "./components/**/*.{js,ts,jsx,tsx}",
+  // Replace the two HeroUI lines with just this one:
+  "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
+],
   theme: {
     extend: {
       colors: {
